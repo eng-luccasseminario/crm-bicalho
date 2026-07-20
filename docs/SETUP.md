@@ -110,11 +110,25 @@ número de teste/produção → `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `W
    railway ssh
    yarn database:init:prod
    ```
-7. **Suba um serviço WORKER** (⚠️ OBRIGATÓRIO para a Timeline e jobs de fundo). Crie um segundo
-   serviço no mesmo projeto, **mesma imagem** `twentycrm/twenty:latest`, **mesmas variáveis** do
-   servidor (Postgres + Redis), mas com o **start command** `yarn worker`.
-   - Sem o worker, a aba **Timeline** dos cartões fica **vazia**, e outros jobs (indexação de
-     busca, e-mails, sincronizações) não rodam. O servidor web sozinho **não** processa a fila.
+7. **Suba um serviço WORKER** (⚠️ OBRIGATÓRIO para a Timeline e jobs de fundo). É um 2º serviço,
+   **mesma imagem** `twentycrm/twenty:latest`, **mesmas variáveis** do servidor web (Postgres +
+   Redis), mudando só o **start command** para `yarn worker`. Sem ele, a aba **Timeline** fica
+   **vazia** e jobs (indexação de busca, e-mails, sincronizações) não rodam — o web sozinho não
+   processa a fila.
+
+   **Jeito fácil (recomendado) — duplicar o serviço web** (copia todas as variáveis):
+   1. No projeto do Twenty no Railway → clique no serviço web (`crm-seminario`) → menu **⋯** →
+      **Duplicate service**. Isso cria uma cópia com a mesma imagem e as mesmas variáveis.
+   2. No serviço duplicado → **Settings → Deploy → Custom Start Command** → digite `yarn worker`.
+   3. **Settings → remova o Domain** e o **Volume** do worker (ele não precisa de URL pública nem
+      de storage — quem tem esses é o web). Renomeie para `twenty-worker`.
+   4. Deploy. Confira em **Logs** que o worker subiu processando a fila.
+
+   **Jeito manual (do zero):** New Service → Docker Image `twentycrm/twenty:latest` → em
+   **Variables** replique as do web (`PG_DATABASE_URL`, `REDIS_URL`, `APP_SECRET`, etc.) → em
+   **Settings → Deploy → Custom Start Command** ponha `yarn worker` → Deploy.
+
+   > Não precisa de Domain nem Volume no worker. Ele compartilha o mesmo Postgres e Redis do web.
 8. Acesse a URL pública → crie a conta admin → `Settings > APIs & Webhooks` → gere a
    **API Key** (vira `TWENTY_API_KEY`).
 
