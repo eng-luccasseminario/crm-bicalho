@@ -36,12 +36,15 @@ Todas as plataformas/serviços que fazem o CRM funcionar, o papel de cada uma e 
    Supabase (Postgres) — hospedado no Railway
 ```
 
-## Qual conta usa o quê
+## Contas por serviço (ao replicar)
 
-| Serviço | Conta usada no projeto |
-|---------|------------------------|
-| Railway | luccas.seminario@gmail.com |
-| Google (Drive/Calendar) | luccas.seminario@gmail.com |
-| Supabase | conta do projeto "CRM" (ref `jztnayibqtpboxzmaaqu`) |
+Cada serviço precisa de uma **conta/projeto próprio seu**. Recomendação de organização:
 
-> Ao replicar o sistema para outra empresa, cada serviço acima precisa de uma conta/projeto próprio. O [SETUP.md](./SETUP.md) guia a criação de cada um.
+| Serviço | Conta a usar |
+|---------|--------------|
+| Railway | sua conta Railway (pode ser a mesma do Google) |
+| Google (Drive/Calendar) | a conta Google que vai **hospedar os documentos e a agenda** |
+| Supabase | um projeto Supabase seu (o `ref` fica na URL do seu projeto) |
+
+> Dica: use a **mesma conta Google** para Railway e Google Cloud, simplifica o login. O
+> [SETUP.md](./SETUP.md) guia a criação de cada um. **Nunca** coloque credenciais reais nos docs.

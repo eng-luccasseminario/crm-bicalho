@@ -8,8 +8,8 @@ pegar cada API e conectar tudo. Ao final você terá o CRM + o agente IA rodando
 > validando cada credencial. Este documento existe para você saber **onde pegar** cada uma.
 
 ### Checklist (a jornada inteira)
-- [ ] **0.** Ferramentas + contas criadas + acesso ao repo (privado)
-- [ ] **1.** Clonar o repo
+- [ ] **0.** Ferramentas instaladas + contas criadas
+- [ ] **1.** Clonar o repo (público — clone livre)
 - [ ] **2.** Supabase (banco) — senha na connection string + Pool Size 30 + `ALTER EXTENSION`
 - [ ] **3.** OpenAI (chave + crédito)
 - [ ] **4.** Google Cloud (Drive + Calendar) — **publicar consentimento em Production**
@@ -29,7 +29,7 @@ pegar cada API e conectar tudo. Ao final você terá o CRM + o agente IA rodando
 |-----------|---------------|-----------|
 | Node.js 18+ | [nodejs.org](https://nodejs.org) | `node -v` |
 | Git | [git-scm.com](https://git-scm.com) | `git -v` |
-| GitHub CLI | [cli.github.com](https://cli.github.com) | `gh --version` |
+| GitHub CLI *(opcional — só p/ contribuir via fork/PR)* | [cli.github.com](https://cli.github.com) | `gh --version` |
 | Railway CLI | `npm i -g @railway/cli` | `railway -v` |
 
 **Contas a criar antes de começar** (todas têm free tier, exceto a OpenAI que é paga por uso):
@@ -45,11 +45,9 @@ pegar cada API e conectar tudo. Ao final você terá o CRM + o agente IA rodando
 
 ## 1. Clonar o repositório
 
-> ⚠️ **O repositório é PRIVADO.** Você precisa de acesso a ele: peça ao dono para te adicionar
-> como **colaborador** (ou faça um fork da sua conta). Depois, autentique o Git:
-> ```bash
-> gh auth login          # escolha GitHub.com → HTTPS → login no navegador
-> ```
+> ℹ️ **O repositório é público** — qualquer um pode **clonar e usar**. Você **não** precisa de
+> login para clonar. (Só os mantenedores dão `push`; se quiser contribuir com melhorias, faça um
+> **fork** e abra um **pull request**.)
 
 ```bash
 git clone https://github.com/eng-luccasseminario/crm-bicalho.git

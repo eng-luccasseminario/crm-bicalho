@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Orientação — Instalar o CRM Bicalho</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color: #1a2027;
+         font-size: 11.2pt; line-height: 1.5; margin: 0; }
+  h1 { font-size: 22pt; color: #0b3d59; margin: 0 0 2px; }
+  .sub { color: #5b6b7a; font-size: 10.5pt; margin: 0 0 4px; }
+  .repo { display: inline-block; background: #eef4f8; border: 1px solid #cfe0ea; color: #0b3d59;
+          padding: 4px 10px; border-radius: 6px; font-size: 10pt; margin: 8px 0 4px; }
+  h2 { font-size: 14pt; color: #0b3d59; border-bottom: 2px solid #e2e8ee; padding-bottom: 4px;
+       margin: 22px 0 10px; page-break-after: avoid; }
+  h3 { font-size: 12pt; color: #124b6b; margin: 14px 0 6px; }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0 6px 18px; padding: 0; }
+  li { margin: 3px 0; }
+  code { background: #f2f5f8; border: 1px solid #e2e8ee; border-radius: 4px; padding: 1px 5px;
+         font-family: "Cascadia Code", Consolas, monospace; font-size: 9.6pt; color: #b0006b; }
+  pre { background: #0f2b3d; color: #e8f0f5; border-radius: 8px; padding: 12px 14px; overflow-x: auto;
+        font-family: "Cascadia Code", Consolas, monospace; font-size: 9.4pt; line-height: 1.45;
+        page-break-inside: avoid; }
+  pre code { background: none; border: none; color: inherit; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 10pt; page-break-inside: avoid; }
+  th { background: #0b3d59; color: #fff; text-align: left; padding: 7px 9px; }
+  td { border: 1px solid #dde4ea; padding: 6px 9px; }
+  tr:nth-child(even) td { background: #f7fafc; }
+  .alert { border-left: 4px solid #e6a700; background: #fff8e6; padding: 8px 12px; border-radius: 4px;
+           margin: 8px 0; page-break-inside: avoid; }
+  .crit { border-left: 4px solid #d23; background: #fdecec; padding: 8px 12px; border-radius: 4px;
+          margin: 8px 0; page-break-inside: avoid; }
+  .num { display: inline-block; background: #0b3d59; color: #fff; width: 20px; height: 20px;
+         border-radius: 50%; text-align: center; font-size: 10pt; line-height: 20px; margin-right: 6px; }
+  hr { border: none; border-top: 1px solid #e2e8ee; margin: 18px 0; }
+  strong { color: #0b3d59; }
+  .foot { color: #7a8896; font-size: 9pt; margin-top: 24px; border-top: 1px solid #e2e8ee; padding-top: 8px; }
+</style>
+</head>
+<body>
+
+<h1>Orientação — Instalar o CRM Bicalho</h1>
+<p class="sub">Pontapé para colocar o CRM no ar do zero. O guia técnico completo é o <code>docs/SETUP.md</code> do repositório.</p>
+<span class="repo">Repositório (público): github.com/eng-luccasseminario/crm-bicalho</span>
+
+<h2>1. Antes de tudo</h2>
+<h3>Instale na sua máquina</h3>
+<ul>
+  <li>Node.js 18+ — nodejs.org</li>
+  <li>Git — git-scm.com</li>
+  <li>Railway CLI — <code>npm i -g @railway/cli</code></li>
+</ul>
+<h3>Crie estas contas</h3>
+<p>Todas com free tier, exceto a OpenAI (paga por uso):</p>
+<table>
+  <tr><th>Conta</th><th>Para quê</th><th>Custo</th></tr>
+  <tr><td>Supabase</td><td>Banco de dados do CRM</td><td>Grátis</td></tr>
+  <tr><td>OpenAI</td><td>Cérebro do agente (precisa adicionar crédito)</td><td>Pago por uso</td></tr>
+  <tr><td>Google Cloud</td><td>Drive (documentos) + Calendar (reuniões)</td><td>Grátis</td></tr>
+  <tr><td>Railway</td><td>Hospedagem 24/7</td><td>~US$ 5/mês</td></tr>
+  <tr><td>Telegram</td><td>Canal de conversa (bot)</td><td>Grátis</td></tr>
+</table>
+
+<h2>2. Clonar e seguir o guia</h2>
+<p>O repositório é <strong>público</strong>: não precisa de login para clonar.</p>
+<pre><code>git clone https://github.com/eng-luccasseminario/crm-bicalho.git
+cd crm-bicalho/agente-whatsapp
+npm install</code></pre>
+<p>Depois, siga o <code>docs/SETUP.md</code> de cima a baixo — ele tem um checklist no topo, os links
+de cada credencial, um conector automático (<code>npm run conectar</code>) e o troubleshooting.</p>
+
+<h2>3. Os 5 alertas que evitam 90% dos problemas</h2>
+
+<p><span class="num">1</span><strong>Supabase</strong> — ao copiar a <em>connection string</em>,
+troque <code>[YOUR-PASSWORD]</code> pela senha real do banco. Deixe o Pool Size em 30.</p>
+
+<div class="crit"><span class="num">2</span><strong>Google (o mais importante)</strong> — na tela de
+consentimento OAuth, <strong>PUBLIQUE em "Production"</strong> (não deixe em "Testing"). Em Testing o
+token <strong>expira em 7 dias</strong> e o sistema para de gravar no Drive toda semana. Aceite o
+aviso de "app não verificado".</div>
+
+<p><span class="num">3</span><strong>Twenty no Railway</strong> — depois do serviço <em>web</em>, crie o
+serviço <strong>worker</strong> (2º serviço, start command <code>yarn worker:prod</code>). Sem ele a
+Timeline não funciona e as tarefas não marcam. Em <strong>ambos</strong> adicione
+<code>PG_POOL_IDLE_TIMEOUT_MS=10000</code> e <code>PG_POOL_ALLOW_EXIT_ON_IDLE=true</code>.</p>
+
+<p><span class="num">4</span><strong>Agente</strong> — tem projeto próprio no Railway (separado do
+Twenty). Crie com <code>railway up --new -d</code> de dentro de <code>agente-whatsapp</code>.</p>
+
+<p><span class="num">5</span><strong>Conectar tudo</strong> — de dentro de <code>agente-whatsapp</code>,
+rode <code>npm run conectar</code>: pergunta cada chave, valida na hora e abre o OAuth do Google.</p>
+
+<h2>4. Finalização</h2>
+<ul>
+  <li><code>npx ts-node scripts/criar-campo-pasta-drive.ts</code> — cria o campo "Pasta no Drive" na Empresa.</li>
+  <li><code>npm run sync:crm</code> — traz documentos antigos do Drive para o CRM.</li>
+  <li>Testes de fumaça (§9 do SETUP): manda mensagem pro bot, envia um PDF, cadastra uma proposta.</li>
+</ul>
+
+<h2>5. Documentos de apoio no repositório</h2>
+<ul>
+  <li><code>docs/SETUP.md</code> — guia técnico completo (o principal).</li>
+  <li><code>docs/PLATAFORMAS.md</code> — tabela de plataformas e onde pegar cada credencial.</li>
+  <li><code>docs/ATIVAR-WHATSAPP.md</code> — migrar do Telegram para o WhatsApp oficial.</li>
+</ul>
+
+<div class="alert"><strong>Como contribuir:</strong> o repositório é público mas só os mantenedores dão
+<code>push</code>. Faça um <strong>fork</strong>, commite na sua cópia e abra um <strong>pull request</strong>.
+Nunca inclua credenciais reais (<code>.env</code>) em commits.</div>
+
+<p class="foot">CRM Bicalho — documento de orientação de instalação. Gerado a partir de docs/ORIENTACAO-INSTALACAO.md.</p>
+
+</body>
+</html>
