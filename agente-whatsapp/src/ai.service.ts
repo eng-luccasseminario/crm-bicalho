@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { criarContato, criarNota, criarProposta, consultarPipeline, atualizarFaseDeal } from './tools/twenty.tools';
+import { criarContato, criarNota, criarProposta, consultarPipeline, atualizarFaseDeal, registrarDocumentoNota } from './tools/twenty.tools';
 import { agendarReuniao, consultarAgenda } from './tools/calendar.tools';
 import { listarDocumentosCliente, uploadDocumento } from './tools/drive.tools';
 
@@ -208,15 +208,24 @@ async function executeTool(name: string, input: Record<string, any>, chatId: str
           result = { erro: 'Nenhum arquivo pendente. Peça ao usuário para reenviar o arquivo (PDF/foto/documento) e informar o cliente.' };
           break;
         }
+        const nomeArquivo = input.nomeArquivo || anexo.nomeArquivo;
         const link = await uploadDocumento({
           clienteNome: input.clienteNome,
           categoria:   input.categoria,
           conteudo:    anexo.conteudo,
-          nomeArquivo: input.nomeArquivo || anexo.nomeArquivo,
+          nomeArquivo,
           mimeType:    anexo.mimeType,
         });
         anexosPendentes.delete(chatId); // consumido: evita rearquivar no mesmo chat
-        result = { arquivado: true, link, pasta: `${input.clienteNome} / ${input.categoria}` };
+        // Ponte com o CRM: cria Nota vinculada à empresa (e à proposta ativa) → aparece em Notas + timeline
+        let crm: string;
+        try {
+          const r = await registrarDocumentoNota({ clienteNome: input.clienteNome, categoria: input.categoria, nomeArquivo, link, mimeType: anexo.mimeType });
+          crm = r.vinculadoAProposta ? 'vinculado à empresa e à proposta ativa (Notas + Arquivos)' : 'vinculado à empresa (Notas + Arquivos)';
+        } catch (e: any) {
+          crm = `arquivado no Drive, mas falhou ao vincular no CRM: ${e.message}`;
+        }
+        result = { arquivado: true, link, pasta: `${input.clienteNome} / ${input.categoria}`, crm };
         break;
       }
       default: return 'Tool não reconhecida';

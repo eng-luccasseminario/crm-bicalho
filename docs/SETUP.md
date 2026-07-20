@@ -146,12 +146,35 @@ railway logs          # deve mostrar "Agente ... iniciado"
 
 ---
 
+## 8b. Ponte CDE: documentos do Drive ↔ CRM (Notas, Timeline e Arquivos)
+
+Quando o agente arquiva um documento no Google Drive (via chat), ele **também registra o
+documento dentro do Twenty**, vinculado à **Empresa** e, se houver, à **Proposta ativa** do
+cliente. O mesmo documento passa a aparecer em **três lugares** do registro no CRM:
+
+- **Notas** — uma nota `📎 <arquivo>` com categoria + link clicável do Drive;
+- **Timeline** — a nota aparece na linha do tempo da Empresa e da Proposta;
+- **Arquivos** — um anexo (link para o Drive) na aba *Arquivos* do registro.
+
+Assim o arquivo mora no Drive (organizado por cliente/categoria) e o CRM vira o índice
+navegável — nada fica "solto". Não precisa configurar nada: já vem no fluxo `arquivar_documento`.
+
+### Sincronizar o que JÁ está no Drive (retroativo)
+Para trazer para o CRM os documentos que já existiam no Drive antes desta ponte:
+```bash
+cd agente-whatsapp
+npm run sync:crm      # varre CRM-Seminario/<cliente>/<categoria>/* e cria Notas + Arquivos
+```
+É **idempotente** (não duplica): pula os documentos cujo link já está referenciado no CRM.
+Requer o `.env` preenchido (Google + Twenty).
+
 ## 9. Testes de fumaça
 
 No seu canal (Telegram/WhatsApp), mande:
 - `"quais minhas próximas reuniões?"` → consulta o Google Calendar
 - `"agenda reunião com a Construtora X sexta 14h"` → cria evento + link do Meet
-- Envie um **PDF com legenda** `"contrato da Construtora X"` → arquiva no Drive (CDE)
+- Envie um **PDF com legenda** `"contrato da Construtora X"` → arquiva no Drive **e** aparece na
+  empresa no CRM em **Notas + Timeline + Arquivos** (e na proposta ativa, se houver)
 - `"cadastra proposta de R$ 50 mil para a Construtora X na fase Prospecção"` → cria no Twenty
 
 Tudo respondendo = sistema 100% no ar. 🎉

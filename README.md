@@ -21,6 +21,7 @@ O agente:            ✅ cria no Google Calendar com link do Meet.
 - 🧠 **Agente IA** (OpenAI GPT-4o) que entende linguagem natural, texto **e áudio** (Whisper).
 - 📇 **Gestão de propostas** no pipeline: Prospecção → Qualificação → Proposta → Negociação → Fechado/Perdido.
 - 🗂️ **CDE de documentos** por cliente no Google Drive (envie um arquivo pelo chat e ele arquiva na categoria certa).
+- 🔗 **Ponte Drive ↔ CRM**: cada documento arquivado aparece no Twenty em **Notas + Timeline + Arquivos**, vinculado à Empresa e à Proposta ativa (com `npm run sync:crm` para sincronizar o histórico do Drive).
 - 📅 **Agenda** integrada ao Google Calendar, com geração de link do Google Meet.
 - 💬 **Canal flexível**: Telegram (padrão) ou WhatsApp Business Cloud API (oficial) — troca com uma variável.
 
@@ -48,7 +49,9 @@ Diagrama e detalhes: [docs/PLATAFORMAS.md](docs/PLATAFORMAS.md).
 │   │   ├── telegram.ts         # canal Telegram (long-polling)
 │   │   ├── whatsapp-cloud.ts   # canal WhatsApp oficial (Meta Cloud API)
 │   │   ├── google-auth.ts      # gera o refresh token do Google
-│   │   └── tools/              # twenty, drive (CDE), calendar
+│   │   └── tools/              # twenty (CRM+ponte), drive (CDE), calendar
+│   ├── scripts/
+│   │   └── sincronizar-drive-crm.ts  # sync retroativo Drive → CRM (Notas + Arquivos)
 │   └── .env.example
 ├── setup/
 │   └── conectar.mjs        # conector guiado de todas as APIs

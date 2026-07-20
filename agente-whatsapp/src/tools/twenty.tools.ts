@@ -107,27 +107,123 @@ export async function criarNota(params: {
   corpo: string;
   pessoaId?: string;
   empresaId?: string;
+  oportunidadeId?: string;
 }) {
+  // Nesta versão do Twenty, noteTargets não aceita create aninhado: cria a nota e
+  // depois vincula cada alvo via createNoteTarget (faz aparecer na timeline de cada um).
   const data = await gql(
-    `mutation CriarNota($input: NoteCreateInput!) {
-      createNote(data: $input) { id title }
-    }`,
-    {
-      input: {
-        title: params.titulo,
-        bodyV2: { markdown: params.corpo },
-        noteTargets: {
-          createMany: {
-            data: [
-              ...(params.pessoaId ? [{ personId: params.pessoaId }] : []),
-              ...(params.empresaId ? [{ companyId: params.empresaId }] : []),
-            ],
-          },
-        },
-      },
-    }
+    `mutation CriarNota($input: NoteCreateInput!) { createNote(data: $input) { id title } }`,
+    { input: { title: params.titulo, bodyV2: { markdown: params.corpo } } }
   );
+  const noteId = data.createNote.id;
+
+  const alvos: Record<string, string>[] = [
+    ...(params.pessoaId ? [{ noteId, targetPersonId: params.pessoaId }] : []),
+    ...(params.empresaId ? [{ noteId, targetCompanyId: params.empresaId }] : []),
+    ...(params.oportunidadeId ? [{ noteId, targetOpportunityId: params.oportunidadeId }] : []),
+  ];
+  for (const input of alvos) {
+    await gql(
+      `mutation CriarNoteTarget($input: NoteTargetCreateInput!) { createNoteTarget(data: $input) { id } }`,
+      { input }
+    );
+  }
   return data.createNote;
+}
+
+// Acha a proposta ATIVA mais recente de uma empresa (ignora Fechado/Perdido). undefined se não houver.
+async function buscarOportunidadeAtivaDaEmpresa(empresaId: string): Promise<string | undefined> {
+  const data = await gql(`
+    query {
+      opportunities(first: 100) {
+        edges { node { id stage updatedAt company { id } } }
+      }
+    }`);
+  const abertas = data.opportunities.edges
+    .map((e: any) => e.node)
+    .filter((o: any) => o.company?.id === empresaId && !['FECHADO', 'PERDIDO'].includes(o.stage))
+    .sort((a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+  return abertas[0]?.id;
+}
+
+// Cria uma Nota no CRM (vinculada à empresa) apontando para um documento arquivado no Drive.
+// É a "ponte" entre o CDE do Google Drive e a interface do Twenty.
+// Mapeia mimeType/nome do arquivo -> AttachmentFileCategoryEnum do Twenty
+function categoriaArquivo(mimeType = '', nome = ''): string {
+  const m = mimeType.toLowerCase(); const n = nome.toLowerCase();
+  if (m.startsWith('image/')) return 'IMAGE';
+  if (m.startsWith('audio/')) return 'AUDIO';
+  if (m.startsWith('video/')) return 'VIDEO';
+  if (m.includes('spreadsheet') || m.includes('excel') || m.includes('csv') || /\.(xlsx?|csv)$/.test(n)) return 'SPREADSHEET';
+  if (m.includes('presentation') || m.includes('powerpoint') || /\.(pptx?)$/.test(n)) return 'PRESENTATION';
+  if (m.includes('zip') || m.includes('rar') || m.includes('7z') || m.includes('compressed') || /\.(zip|rar|7z)$/.test(n)) return 'ARCHIVE';
+  if (m.includes('pdf') || m.includes('word') || m.includes('document') || m.startsWith('text/') || /\.(pdf|docx?|txt|md)$/.test(n)) return 'TEXT_DOCUMENT';
+  return 'OTHER';
+}
+
+// Cria um Attachment (aba "Arquivos") apontando para o link do Drive, vinculado a um alvo.
+async function criarAttachment(params: {
+  nome: string; url: string; fileCategory: string;
+  targetCompanyId?: string; targetOpportunityId?: string;
+}) {
+  const input: Record<string, unknown> = {
+    name: params.nome, fullPath: params.url, fileCategory: params.fileCategory,
+  };
+  if (params.targetCompanyId) input.targetCompanyId = params.targetCompanyId;
+  if (params.targetOpportunityId) input.targetOpportunityId = params.targetOpportunityId;
+  const data = await gql(
+    `mutation CriarAnexo($input: AttachmentCreateInput!) { createAttachment(data: $input) { id name } }`,
+    { input }
+  );
+  return data.createAttachment;
+}
+
+// Ponte completa Drive -> CRM: cria a NOTA (Notas + timeline) E o ATTACHMENT (aba Arquivos),
+// vinculados à empresa e, se houver, à proposta ativa. Assim o doc do Drive fica 100% visível no CRM.
+export async function registrarDocumentoNota(params: {
+  clienteNome: string;
+  categoria: string;
+  nomeArquivo: string;
+  link: string;
+  mimeType?: string;
+}) {
+  const empresaId = await buscarOuCriarEmpresa(params.clienteNome);
+  const oportunidadeId = await buscarOportunidadeAtivaDaEmpresa(empresaId);
+
+  const nota = await criarNota({
+    titulo: `📎 ${params.nomeArquivo}`,
+    corpo:
+      `**Documento:** [${params.nomeArquivo}](${params.link})\n` +
+      `**Categoria:** ${params.categoria}\n` +
+      `**Origem:** WhatsApp → Google Drive (CDE)`,
+    empresaId,
+    oportunidadeId,
+  });
+
+  // Attachment (Arquivos): um por alvo, para aparecer na aba Arquivos da empresa e da proposta
+  const fileCategory = categoriaArquivo(params.mimeType, params.nomeArquivo);
+  try {
+    await criarAttachment({ nome: params.nomeArquivo, url: params.link, fileCategory, targetCompanyId: empresaId });
+    if (oportunidadeId) {
+      await criarAttachment({ nome: params.nomeArquivo, url: params.link, fileCategory, targetOpportunityId: oportunidadeId });
+    }
+  } catch (e: any) {
+    // Anexo é complementar; se falhar, a nota já garante rastreabilidade
+    console.error('[twenty] falha ao criar attachment:', e.message);
+  }
+
+  return { notaId: nota.id, empresaId, oportunidadeId, vinculadoAProposta: !!oportunidadeId };
+}
+
+// Retorna o conjunto de links do Drive já referenciados em Notas (para deduplicar sincronização).
+export async function linksDeDocumentosJaRegistrados(): Promise<Set<string>> {
+  const data = await gql(`query { notes(first: 500) { edges { node { bodyV2 { markdown } } } } }`);
+  const set = new Set<string>();
+  for (const e of data.notes.edges) {
+    const md: string = e.node?.bodyV2?.markdown || '';
+    for (const m of md.matchAll(/\((https?:\/\/[^)]+)\)/g)) set.add(m[1]);
+  }
+  return set;
 }
 
 export async function criarProposta(params: {
