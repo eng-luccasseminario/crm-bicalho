@@ -112,21 +112,24 @@ número de teste/produção → `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `W
    ```
 7. **Suba um serviço WORKER** (⚠️ OBRIGATÓRIO para a Timeline e jobs de fundo). É um 2º serviço,
    **mesma imagem** `twentycrm/twenty:latest`, **mesmas variáveis** do servidor web (Postgres +
-   Redis), mudando só o **start command** para `yarn worker`. Sem ele, a aba **Timeline** fica
+   Redis), mudando só o **start command** para `yarn worker:prod`. Sem ele, a aba **Timeline** fica
    **vazia** e jobs (indexação de busca, e-mails, sincronizações) não rodam — o web sozinho não
    processa a fila.
 
    **Jeito fácil (recomendado) — duplicar o serviço web** (copia todas as variáveis):
    1. No projeto do Twenty no Railway → clique no serviço web (`crm-seminario`) → menu **⋯** →
       **Duplicate service**. Isso cria uma cópia com a mesma imagem e as mesmas variáveis.
-   2. No serviço duplicado → **Settings → Deploy → Custom Start Command** → digite `yarn worker`.
+   2. No serviço duplicado → **Settings → Deploy → Custom Start Command** → digite `yarn worker:prod`.
    3. **Settings → remova o Domain** e o **Volume** do worker (ele não precisa de URL pública nem
       de storage — quem tem esses é o web). Renomeie para `twenty-worker`.
    4. Deploy. Confira em **Logs** que o worker subiu processando a fila.
 
    **Jeito manual (do zero):** New Service → Docker Image `twentycrm/twenty:latest` → em
    **Variables** replique as do web (`PG_DATABASE_URL`, `REDIS_URL`, `APP_SECRET`, etc.) → em
-   **Settings → Deploy → Custom Start Command** ponha `yarn worker` → Deploy.
+   **Settings → Deploy → Custom Start Command** ponha `yarn worker:prod` → Deploy.
+
+   > ⚠️ É `yarn worker:prod` (não `yarn worker`). Nessa imagem o script chama-se `worker:prod`
+   > (`node dist/queue-worker/queue-worker`); `yarn worker` dá erro "Couldn't find a script named worker".
 
    > Não precisa de Domain nem Volume no worker. Ele compartilha o mesmo Postgres e Redis do web.
 8. Acesse a URL pública → crie a conta admin → `Settings > APIs & Webhooks` → gere a
@@ -233,7 +236,8 @@ Tudo respondendo = sistema 100% no ar. 🎉
 | Sintoma | Causa provável | Solução |
 |---------|----------------|---------|
 | Bot não responde a arquivos | Deploy antigo no ar | `railway up -d` de novo; confira `railway logs` |
-| **Aba Timeline vazia** (mesmo com notas/tarefas vinculadas) | **Worker do Twenty não está rodando** | Suba o serviço worker (`yarn worker`) no projeto do Twenty (§6, passo 7) |
+| **Aba Timeline vazia** (mesmo com notas/tarefas vinculadas) | **Worker do Twenty não está rodando** | Suba o serviço worker (start command `yarn worker:prod`) no projeto do Twenty (§6, passo 7) |
+| Worker em **Crashed** com "Couldn't find a script named worker" | Start command errado (`yarn worker`) | Troque para **`yarn worker:prod`** |
 | Aba Files quebrada (sem arquivos/sem botão) | Attachment com link externo (versão antiga da ponte) | `npx ts-node scripts/remover-attachments-externos.ts` |
 | Tarefa não aparece na Timeline | Comportamento normal | Tarefa vive na aba **Tasks**, não na Timeline |
 | `redirect_uri_mismatch` | URI faltando no OAuth Client | Adicione `http://localhost:3999/oauth2callback` |
