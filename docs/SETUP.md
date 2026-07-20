@@ -3,23 +3,53 @@
 Passo a passo para colocar o sistema inteiro no ar do zero: clonar, criar contas,
 pegar cada API e conectar tudo. Ao final você terá o CRM + o agente IA rodando 24/7.
 
-> **Atalho:** depois de clonar e criar as contas, rode `node setup/conectar.mjs`
-> (ou `/conectar-crm` no Claude Code) e o assistente conduz a conexão validando cada
-> credencial automaticamente. Este documento existe para você saber **onde pegar** cada uma.
+> **Atalho:** depois de clonar e criar as contas, rode `npm run conectar` (dentro de
+> `agente-whatsapp/`) — ou `/conectar-crm` no Claude Code — e o assistente conduz a conexão
+> validando cada credencial. Este documento existe para você saber **onde pegar** cada uma.
+
+### Checklist (a jornada inteira)
+- [ ] **0.** Ferramentas + contas criadas + acesso ao repo (privado)
+- [ ] **1.** Clonar o repo
+- [ ] **2.** Supabase (banco) — senha na connection string + Pool Size 30 + `ALTER EXTENSION`
+- [ ] **3.** OpenAI (chave + crédito)
+- [ ] **4.** Google Cloud (Drive + Calendar) — **publicar consentimento em Production**
+- [ ] **5.** Canal (Telegram ou WhatsApp)
+- [ ] **6.** Twenty no Railway — web + **worker (`yarn worker:prod`)** + pool + API Key
+- [ ] **7.** Rodar o conector (`npm run conectar`)
+- [ ] **8.** Deploy do agente (projeto próprio no Railway)
+- [ ] **8b.** Campo "Pasta no Drive" + sync
+- [ ] **9.** Testes de fumaça
 
 ---
 
 ## 0. Pré-requisitos
 
+**Ferramentas na máquina:**
 | Ferramenta | Como instalar | Verificar |
 |-----------|---------------|-----------|
 | Node.js 18+ | [nodejs.org](https://nodejs.org) | `node -v` |
 | Git | [git-scm.com](https://git-scm.com) | `git -v` |
+| GitHub CLI | [cli.github.com](https://cli.github.com) | `gh --version` |
 | Railway CLI | `npm i -g @railway/cli` | `railway -v` |
+
+**Contas a criar antes de começar** (todas têm free tier, exceto a OpenAI que é paga por uso):
+| Conta | Para quê | Custo |
+|---|---|---|
+| [Supabase](https://supabase.com) | Banco de dados do CRM | Free |
+| [OpenAI](https://platform.openai.com) | Cérebro do agente — **precisa adicionar crédito** | Pago por uso |
+| [Google Cloud](https://console.cloud.google.com) | Drive (documentos) + Calendar (reuniões) | Free |
+| [Railway](https://railway.app) | Hospedagem 24/7 | ~US$5/mês |
+| Telegram | Canal de conversa (bot) | Free |
 
 ---
 
 ## 1. Clonar o repositório
+
+> ⚠️ **O repositório é PRIVADO.** Você precisa de acesso a ele: peça ao dono para te adicionar
+> como **colaborador** (ou faça um fork da sua conta). Depois, autentique o Git:
+> ```bash
+> gh auth login          # escolha GitHub.com → HTTPS → login no navegador
+> ```
 
 ```bash
 git clone https://github.com/eng-luccasseminario/crm-bicalho.git
@@ -34,8 +64,10 @@ npm install
 
 ## 2. Supabase (banco do CRM)
 
-1. Crie conta em [supabase.com](https://supabase.com) → **New project** (guarde a senha do Postgres).
+1. Crie conta em [supabase.com](https://supabase.com) → **New project** (guarde a senha do Postgres — você vai precisar dela agora).
 2. Em `Settings > Database > Connection string` copie a URL (modo *Session*).
+   > ⚠️ A URL vem com um placeholder `[YOUR-PASSWORD]` — **substitua pela senha real** do banco
+   > (a do passo 1). Essa URL final é o `PG_DATABASE_URL` que o Twenty vai usar.
 3. Em `Settings > Database > Connection Pooling`, suba o **Pool Size para 30** (evita o erro `EMAXCONNSESSION` do Twenty sob carga).
 4. Correções que o Twenty exige neste banco (rode no **SQL Editor**):
    ```sql
@@ -58,8 +90,11 @@ npm install
 
 1. [console.cloud.google.com](https://console.cloud.google.com) → crie um projeto.
 2. **APIs & Services > Library** → ative **Google Drive API** e **Google Calendar API**.
-3. **APIs & Services > OAuth consent screen** → tipo *External* → preencha o mínimo →
-   em **Test users** adicione o e-mail que vai autorizar (ex: `luccas.seminario@gmail.com`).
+3. **APIs & Services > OAuth consent screen** → tipo *External* → preencha o mínimo.
+   > 🔴 **CRÍTICO — PUBLIQUE a tela em "Production"** (botão **Publish app**). **Não deixe em
+   > "Testing"**: em modo Testing o refresh token do Google **expira em 7 dias** e o sistema para
+   > de gravar no Drive/Agenda toda semana. Em Production ele **não expira**. Vai aparecer um aviso
+   > de "app não verificado" — tudo bem, é seu app (você aceita na hora de autorizar).
 4. **APIs & Services > Credentials > Create Credentials > OAuth client ID** → tipo **Web application**.
    - Em **Authorized redirect URIs** adicione: `http://localhost:3999/oauth2callback`
    - Guarde o **Client ID** e o **Client secret**.
@@ -98,18 +133,27 @@ número de teste/produção → `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `W
    "New Service > Docker Image").
 3. Adicione um **Redis** ao projeto.
 4. Variáveis essenciais do Twenty: `PG_DATABASE_URL` (Supabase, passo 2), `REDIS_URL`
-   (referência `${{Redis.REDIS_URL}}`), `APP_SECRET` (aleatório), `SERVER_URL`/`FRONTEND_URL`
-   (a própria URL pública do Railway).
+   (referência `${{Redis.REDIS_URL}}`), `APP_SECRET`, `SERVER_URL`/`FRONTEND_URL`
+   (a própria URL pública do Railway). O `APP_SECRET` você gera com:
+   ```bash
+   openssl rand -base64 32
+   ```
+   > A lista **completa** de variáveis do Twenty está na doc oficial de self-host:
+   > [twenty.com/developers/section/self-hosting](https://twenty.com/developers/section/self-hosting).
 5. Anexe um **volume** em `/app/storage` e ajuste permissões:
    ```bash
    railway ssh
    chown -R 1000:1000 /app/storage
    ```
+   > ⚠️ **Windows:** o `railway ssh` costuma travar em *"Host key verification failed"*. Rode pelo
+   > **Git Bash** e, se pedir, aceite a host key (`ssh-keyscan ssh.railway.com >> ~/.ssh/known_hosts`).
 6. Inicialize o banco (só na primeira vez):
    ```bash
    railway ssh
    yarn database:init:prod
    ```
+   > Sem esse passo o Twenty falha com "relation core.X does not exist". O comando é longo — se a
+   > conexão cair, reconecte e rode de novo (é idempotente).
 7. **Suba um serviço WORKER** (⚠️ OBRIGATÓRIO para a Timeline e jobs de fundo). É um 2º serviço,
    **mesma imagem** `twentycrm/twenty:latest`, **mesmas variáveis** do servidor web (Postgres +
    Redis), mudando só o **start command** para `yarn worker:prod`. Sem ele, a aba **Timeline** fica
@@ -137,7 +181,8 @@ número de teste/produção → `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `W
    > sintoma: não dá check em task, erro ao favoritar view, escritas travando. Set nos **dois**
    > serviços: `PG_POOL_IDLE_TIMEOUT_MS=10000` e `PG_POOL_ALLOW_EXIT_ON_IDLE=true` (o padrão de
    > idle é 10min, o que segura conexões à toa). Se ainda faltar, aumente o Pool Size no Supabase.
-8. Acesse a URL pública → crie a conta admin → `Settings > APIs & Webhooks` → gere a
+8. Confira que o Twenty subiu: `curl https://SUA-URL-RAILWAY/healthz` deve responder `200`.
+   Então acesse a URL pública → crie a **conta admin** → `Settings > APIs & Webhooks` → gere a
    **API Key** (vira `TWENTY_API_KEY`).
 
 > Detalhes e troubleshooting completos em `docs/PLANO-CRM-SEMINARIO.md`.
@@ -146,10 +191,11 @@ número de teste/produção → `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `W
 
 ## 7. Conectar tudo (o pulo do gato)
 
-Com as credenciais em mãos, rode o conector guiado:
+Com as credenciais em mãos, rode o conector guiado **de dentro de `agente-whatsapp/`**:
 
 ```bash
-node setup/conectar.mjs
+cd agente-whatsapp
+npm run conectar        # = node ../setup/conectar.mjs
 ```
 
 Ele: pergunta cada valor, **valida na hora** (OpenAI, Twenty, Telegram), roda o **OAuth do Google**
@@ -157,19 +203,32 @@ Ele: pergunta cada valor, **valida na hora** (OpenAI, Twenty, Telegram), roda o 
 
 Alternativa conversacional (dentro do Claude Code): digite `/conectar-crm`.
 
+> Prefere na mão? Copie o template e preencha: `cp agente-whatsapp/.env.example agente-whatsapp/.env`
+> (o `.env.example` lista todas as variáveis com comentários de onde pegar cada uma).
+
 ---
 
 ## 8. Deploy do agente no Railway
 
-Se não deixou o conector fazer:
+O agente tem um projeto **próprio** no Railway (separado do Twenty). Se você não deixou o
+conector fazer o deploy, faça manualmente **de dentro de `agente-whatsapp`**:
 
 ```bash
 cd agente-whatsapp
-railway link          # selecione o projeto do agente
-railway variables --set "CANAL=telegram" --set "OPENAI_API_KEY=..." # (o conector já faz isso)
-railway up -d
-railway logs          # deve mostrar "Agente ... iniciado"
+
+# 1ª vez — CRIA o serviço do agente (novo projeto no Railway):
+railway up --new -d          # cria e sobe; escolha um nome (ex: agente-whatsapp)
+
+# define as variáveis (o conector já faz isso; aqui é o modo manual):
+railway variables --set "CANAL=telegram" --set "OPENAI_API_KEY=..." --set "TELEGRAM_BOT_TOKEN=..." # etc
+
+railway up -d                # redeploy após ajustar variáveis
+railway logs                 # deve mostrar "Agente Telegram iniciado como @seu_bot"
 ```
+
+> Nas próximas vezes é só `railway up -d` (o projeto já existe). Se abrir noutra máquina, use
+> `railway link` para reconectar ao projeto do agente. O agente usa **long-polling** no Telegram
+> (não precisa de domínio público). Só **um** poller pode rodar por vez (local **ou** nuvem, não os dois → erro 409).
 
 ---
 
