@@ -110,7 +110,12 @@ número de teste/produção → `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `W
    railway ssh
    yarn database:init:prod
    ```
-7. Acesse a URL pública → crie a conta admin → `Settings > APIs & Webhooks` → gere a
+7. **Suba um serviço WORKER** (⚠️ OBRIGATÓRIO para a Timeline e jobs de fundo). Crie um segundo
+   serviço no mesmo projeto, **mesma imagem** `twentycrm/twenty:latest`, **mesmas variáveis** do
+   servidor (Postgres + Redis), mas com o **start command** `yarn worker`.
+   - Sem o worker, a aba **Timeline** dos cartões fica **vazia**, e outros jobs (indexação de
+     busca, e-mails, sincronizações) não rodam. O servidor web sozinho **não** processa a fila.
+8. Acesse a URL pública → crie a conta admin → `Settings > APIs & Webhooks` → gere a
    **API Key** (vira `TWENTY_API_KEY`).
 
 > Detalhes e troubleshooting completos em `docs/PLANO-CRM-SEMINARIO.md`.
@@ -151,10 +156,12 @@ railway logs          # deve mostrar "Agente ... iniciado"
 Quando o agente arquiva um documento no Google Drive (via chat), ele **também registra o
 documento dentro do Twenty**, vinculado à **Empresa** e, se houver, à **Proposta ativa**:
 
-- **Notas** — uma nota `📎 <arquivo>` com categoria + link clicável do Drive;
-- **Timeline** — a nota aparece na linha do tempo da Empresa e da Proposta;
+- **Notas** — uma nota `📎 <arquivo>` com categoria + link clicável do Drive (aba **Notes**);
 - **Campo "Pasta no Drive"** — a Empresa recebe um link (tipo LINKS) que abre a **pasta
   organizada do cliente** no Drive, com todos os documentos por categoria.
+
+> A nota também deveria aparecer na **Timeline**, mas isso depende do **worker do Twenty**
+> estar rodando (ver §6, passo 7). Sem worker, a Timeline fica vazia mesmo com os vínculos corretos.
 
 > ⚠️ **Por que não usamos a aba "Files"?** A aba Files do Twenty é para arquivos **enviados
 > para o storage interno** dele (lista plana, sem pastas) e **não aceita links externos** — um
@@ -181,6 +188,18 @@ npm run sync:crm      # varre CRM-Seminario/<cliente>/<categoria>/* e cria as No
 O agente também responde perguntas sobre o CRM ("quantas empresas?", "quanto em negociação?",
 "me fala da empresa X") e atua como consultor estratégico (entrevista você para desenhar
 dashboards, workflows e fluxos de captação — entrega o spec, sem criar automaticamente ainda).
+O "chat de IA do CRM" é o **bot do Telegram** — o Twenty não tem chat embutido na tela.
+
+## 8c. Entendendo as abas do cartão (Timeline, Notes, Tasks, Files)
+
+Cada registro (empresa, pessoa, proposta) tem abas com funções distintas:
+
+| Aba | O que é | Você cria conteúdo? |
+|-----|---------|:---:|
+| **Timeline** | Histórico automático de atividade do cartão (criação, mudança de fase/valor, eventos). Read-only. **Depende do worker do Twenty** (§6, passo 7) — sem ele fica vazia. | ❌ |
+| **Notes** | Notas e documentos. As notas do CDE (docs do Drive) caem aqui. | ✅ |
+| **Tasks** | Tarefas vinculadas ao registro. Uma tarefa vinculada aparece aqui — **não** na Timeline. | ✅ |
+| **Files** | Arquivos enviados **manualmente** para o storage interno do Twenty (lista plana). Não integra com o Drive (ver aviso no §8b). | ✅ |
 
 ## 9. Testes de fumaça
 
@@ -188,7 +207,7 @@ No seu canal (Telegram/WhatsApp), mande:
 - `"quais minhas próximas reuniões?"` → consulta o Google Calendar
 - `"agenda reunião com a Construtora X sexta 14h"` → cria evento + link do Meet
 - Envie um **PDF com legenda** `"contrato da Construtora X"` → arquiva no Drive **e** aparece na
-  empresa no CRM em **Notas + Timeline + Arquivos** (e na proposta ativa, se houver)
+  empresa no CRM na aba **Notes** + preenche o campo **Pasta no Drive** (e vincula à proposta ativa)
 - `"cadastra proposta de R$ 50 mil para a Construtora X na fase Prospecção"` → cria no Twenty
 
 Tudo respondendo = sistema 100% no ar. 🎉
@@ -200,6 +219,9 @@ Tudo respondendo = sistema 100% no ar. 🎉
 | Sintoma | Causa provável | Solução |
 |---------|----------------|---------|
 | Bot não responde a arquivos | Deploy antigo no ar | `railway up -d` de novo; confira `railway logs` |
+| **Aba Timeline vazia** (mesmo com notas/tarefas vinculadas) | **Worker do Twenty não está rodando** | Suba o serviço worker (`yarn worker`) no projeto do Twenty (§6, passo 7) |
+| Aba Files quebrada (sem arquivos/sem botão) | Attachment com link externo (versão antiga da ponte) | `npx ts-node scripts/remover-attachments-externos.ts` |
+| Tarefa não aparece na Timeline | Comportamento normal | Tarefa vive na aba **Tasks**, não na Timeline |
 | `redirect_uri_mismatch` | URI faltando no OAuth Client | Adicione `http://localhost:3999/oauth2callback` |
 | Google `invalid_grant` | Refresh token revogado/expirado | Rode o conector e gere novo token |
 | Twenty "tenant not found" | Supabase pausou (free tier) | Restaure o projeto no dashboard Supabase |
