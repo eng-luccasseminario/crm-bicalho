@@ -132,6 +132,11 @@ número de teste/produção → `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `W
    > (`node dist/queue-worker/queue-worker`); `yarn worker` dá erro "Couldn't find a script named worker".
 
    > Não precisa de Domain nem Volume no worker. Ele compartilha o mesmo Postgres e Redis do web.
+
+   > ⚠️ **Conexões:** com web + worker, o pool do Supabase pode estourar (`EMAXCONNSESSION`) —
+   > sintoma: não dá check em task, erro ao favoritar view, escritas travando. Set nos **dois**
+   > serviços: `PG_POOL_IDLE_TIMEOUT_MS=10000` e `PG_POOL_ALLOW_EXIT_ON_IDLE=true` (o padrão de
+   > idle é 10min, o que segura conexões à toa). Se ainda faltar, aumente o Pool Size no Supabase.
 8. Acesse a URL pública → crie a conta admin → `Settings > APIs & Webhooks` → gere a
    **API Key** (vira `TWENTY_API_KEY`).
 
@@ -243,5 +248,6 @@ Tudo respondendo = sistema 100% no ar. 🎉
 | `redirect_uri_mismatch` | URI faltando no OAuth Client | Adicione `http://localhost:3999/oauth2callback` |
 | Google `invalid_grant` | Refresh token revogado/expirado | Rode o conector e gere novo token |
 | Twenty "tenant not found" | Supabase pausou (free tier) | Restaure o projeto no dashboard Supabase |
-| `EMAXCONNSESSION` | Pool do Supabase cheio | Suba o Pool Size para 30 |
+| `EMAXCONNSESSION` (max clients) | Pool do Supabase cheio — comum **após adicionar o worker** (web + worker somam conexões) | Nos **dois** serviços (web e worker) set `PG_POOL_IDLE_TIMEOUT_MS=10000` e `PG_POOL_ALLOW_EXIT_ON_IDLE=true` (libera conexões ociosas em 10s em vez de 10min); se ainda faltar, suba o Pool Size no Supabase |
+| Não dá check em task / erro ao favoritar view / escritas travando | Mesmo `EMAXCONNSESSION` acima (pool esgotado) | Aplique o fix da linha anterior |
 | Só um poller do Telegram (erro 409) | Rodando local + nuvem juntos | Pare um dos dois |
