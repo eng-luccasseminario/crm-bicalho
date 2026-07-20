@@ -1,0 +1,194 @@
+﻿[
+    {
+        "Objeto":  "Empresas",
+        "Campo":  "LinkedIn",
+        "Tipo":  "LINKS",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Empresas",
+        "Campo":  "Endereço",
+        "Tipo":  "ADDRESS",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Empresas",
+        "Campo":  "Nome",
+        "Tipo":  "TEXT",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Empresas",
+        "Campo":  "Receita Anual",
+        "Tipo":  "CURRENCY",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Empresas",
+        "Campo":  "Site",
+        "Tipo":  "LINKS",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Notas",
+        "Campo":  "Título",
+        "Tipo":  "TEXT",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Notas",
+        "Campo":  "Corpo",
+        "Tipo":  "RICH_TEXT",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Tarefas",
+        "Campo":  "Título",
+        "Tipo":  "TEXT",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Tarefas",
+        "Campo":  "Corpo",
+        "Tipo":  "RICH_TEXT",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Tarefas",
+        "Campo":  "Prazo",
+        "Tipo":  "DATE_TIME",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Tarefas",
+        "Campo":  "Status",
+        "Tipo":  "SELECT",
+        "Opcoes":  "à iniciar / Em progresso / Finalizado"
+    },
+    {
+        "Objeto":  "Workflows",
+        "Campo":  "Status",
+        "Tipo":  "MULTI_SELECT",
+        "Opcoes":  "Draft / Active / Deactivated"
+    },
+    {
+        "Objeto":  "Workflows",
+        "Campo":  "ID da Última Versão",
+        "Tipo":  "TEXT",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Workflows",
+        "Campo":  "Nome",
+        "Tipo":  "TEXT",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Propostas",
+        "Campo":  "Fase",
+        "Tipo":  "SELECT",
+        "Opcoes":  "Prospecção / Qualificação / Proposta Inicial / Negociação / Fechado / Perdido"
+    },
+    {
+        "Objeto":  "Propostas",
+        "Campo":  "Requisitos",
+        "Tipo":  "TEXT",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Propostas",
+        "Campo":  "Nome",
+        "Tipo":  "TEXT",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Propostas",
+        "Campo":  "Data Envio Proposta",
+        "Tipo":  "DATE_TIME",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Propostas",
+        "Campo":  "Motivo da Perda",
+        "Tipo":  "SELECT",
+        "Opcoes":  "Preço / Concorrência / Prazo / Escopo não atendido / Cliente desistiu / Sem orçamento / Outro"
+    },
+    {
+        "Objeto":  "Propostas",
+        "Campo":  "Dores Principais",
+        "Tipo":  "TEXT",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Propostas",
+        "Campo":  "Data da Reunião",
+        "Tipo":  "DATE_TIME",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Propostas",
+        "Campo":  "Probabilidade (%)",
+        "Tipo":  "NUMBER",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Propostas",
+        "Campo":  "Escopo",
+        "Tipo":  "TEXT",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Propostas",
+        "Campo":  "Data de Fechamento",
+        "Tipo":  "DATE_TIME",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Propostas",
+        "Campo":  "Valor",
+        "Tipo":  "CURRENCY",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Dashboards",
+        "Campo":  "Título",
+        "Tipo":  "TEXT",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Dashboards",
+        "Campo":  "ID do Layout",
+        "Tipo":  "UUID",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Pessoas",
+        "Campo":  "Emails",
+        "Tipo":  "EMAILS",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Pessoas",
+        "Campo":  "Cargo",
+        "Tipo":  "TEXT",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Pessoas",
+        "Campo":  "Telefones",
+        "Tipo":  "PHONES",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Pessoas",
+        "Campo":  "Nome",
+        "Tipo":  "FULL_NAME",
+        "Opcoes":  ""
+    },
+    {
+        "Objeto":  "Pessoas",
+        "Campo":  "LinkedIn",
+        "Tipo":  "LINKS",
+        "Opcoes":  ""
+    }
+]

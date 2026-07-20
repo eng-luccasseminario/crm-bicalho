@@ -1,0 +1,29 @@
+{
+  "name": "agente-whatsapp-crm",
+  "version": "1.0.0",
+  "description": "Agente IA via WhatsApp integrado ao CRM Seminário",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn src/main.ts",
+    "dev:telegram": "ts-node-dev --respawn src/telegram.ts",
+    "dev:whatsapp": "ts-node-dev --respawn src/whatsapp-cloud.ts",
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "start:telegram": "node dist/telegram.js",
+    "start:whatsapp": "node dist/whatsapp-cloud.js",
+    "conectar": "node ../setup/conectar.mjs"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "dotenv": "^16.4.0",
+    "express": "^4.19.0",
+    "googleapis": "^140.0.1",
+    "openai": "^4.67.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.0.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.4.0"
+  }
+}

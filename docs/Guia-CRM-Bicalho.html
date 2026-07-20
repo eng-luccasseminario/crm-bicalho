@@ -1,0 +1,444 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Guia Completo — CRM Bicalho Engenharia</title>
+<style>
+  :root{ --azul:#1b3a5b; --azul2:#2f6db3; --laranja:#e67e22; --cinza:#5b6b7a; --claro:#f4f7fb; --borda:#d7e0ea; --verde:#27ae60; --vermelho:#c0392b; }
+  *{ box-sizing:border-box; }
+  body{ font-family:'Segoe UI',Arial,sans-serif; color:#22303c; line-height:1.55; margin:0; font-size:13px; }
+  h1,h2,h3{ color:var(--azul); line-height:1.2; }
+  h2{ border-bottom:3px solid var(--laranja); padding-bottom:6px; margin-top:0; font-size:22px; }
+  h3{ color:var(--azul2); font-size:16px; margin-bottom:4px; }
+  p{ margin:8px 0; }
+  code{ background:#eef2f7; padding:1px 5px; border-radius:4px; font-size:12px; color:var(--vermelho); }
+  a{ color:var(--azul2); }
+  .page{ padding:38px 44px; page-break-after:always; }
+  .page:last-child{ page-break-after:auto; }
+  table{ border-collapse:collapse; width:100%; margin:10px 0; font-size:12px; }
+  th,td{ border:1px solid var(--borda); padding:6px 9px; text-align:left; vertical-align:top; }
+  th{ background:var(--azul); color:#fff; font-weight:600; }
+  tr:nth-child(even) td{ background:var(--claro); }
+  .callout{ border-left:5px solid var(--azul2); background:var(--claro); padding:10px 14px; margin:12px 0; border-radius:0 6px 6px 0; }
+  .callout.dica{ border-color:var(--verde); }
+  .callout.aviso{ border-color:var(--laranja); }
+  .callout.perigo{ border-color:var(--vermelho); }
+  .callout b{ color:var(--azul); }
+  .passos{ counter-reset:p; list-style:none; padding-left:0; }
+  .passos li{ counter-increment:p; margin:8px 0; padding-left:38px; position:relative; }
+  .passos li::before{ content:counter(p); position:absolute; left:0; top:0; background:var(--laranja); color:#fff; width:26px; height:26px; border-radius:50%; text-align:center; line-height:26px; font-weight:700; }
+  /* Mockups */
+  .mock{ border:2px solid var(--borda); border-radius:8px; overflow:hidden; margin:14px 0; font-size:11px; box-shadow:0 2px 6px rgba(0,0,0,.06); }
+  .mock-top{ background:var(--azul); color:#fff; padding:6px 10px; display:flex; gap:8px; align-items:center; }
+  .mock-body{ display:flex; min-height:150px; }
+  .mock-side{ background:#eef2f7; width:150px; border-right:1px solid var(--borda); padding:8px; }
+  .mock-side .item{ padding:5px 8px; border-radius:5px; margin:3px 0; }
+  .mock-side .item.on{ background:var(--azul2); color:#fff; font-weight:600; }
+  .mock-main{ flex:1; padding:10px; background:#fff; }
+  .kanban{ display:flex; gap:8px; }
+  .kcol{ flex:1; background:#f4f7fb; border-radius:6px; padding:6px; min-height:120px; }
+  .kcol .kh{ font-weight:700; font-size:10px; padding:3px 5px; border-radius:4px; color:#fff; margin-bottom:6px; text-align:center; }
+  .kcard{ background:#fff; border:1px solid var(--borda); border-radius:5px; padding:5px; margin:4px 0; font-size:10px; box-shadow:0 1px 2px rgba(0,0,0,.05); }
+  .tag{ display:inline-block; padding:1px 7px; border-radius:10px; font-size:10px; color:#fff; }
+  .cover{ background:linear-gradient(135deg,var(--azul),var(--azul2)); color:#fff; height:960px; display:flex; flex-direction:column; justify-content:center; padding:60px; page-break-after:always; }
+  .cover h1{ color:#fff; font-size:46px; margin:0 0 10px; }
+  .cover .sub{ font-size:20px; opacity:.9; }
+  .cover .foot{ margin-top:auto; font-size:14px; opacity:.85; }
+  .badge{ display:inline-block; background:var(--laranja); color:#fff; padding:4px 12px; border-radius:20px; font-size:14px; margin-bottom:20px; width:fit-content; }
+  .toc a{ text-decoration:none; color:#22303c; }
+  .toc li{ margin:6px 0; font-size:14px; }
+  .grid2{ display:flex; gap:14px; }
+  .grid2>div{ flex:1; }
+  .pill{ display:inline-block; padding:2px 8px; border-radius:5px; background:#eef2f7; font-size:11px; margin:2px; }
+</style>
+</head>
+<body>
+
+<!-- CAPA -->
+<div class="cover">
+  <div class="badge">MANUAL DO USUÁRIO · v1.0</div>
+  <h1>CRM Bicalho Engenharia</h1>
+  <div class="sub">Guia completo da plataforma — do zero ao domínio<br>Gestão de propostas, contatos e pipeline comercial</div>
+  <div class="foot">Plataforma: Twenty CRM · Assistente: Telegram (texto e voz)<br>Documento gerado em julho/2026</div>
+</div>
+
+<!-- SUMÁRIO -->
+<div class="page">
+  <h2>Sumário</h2>
+  <ol class="toc">
+    <li><a href="#c1">1. O que é o CRM e por que usar</a></li>
+    <li><a href="#c2">2. Como acessar (login e primeiro acesso)</a></li>
+    <li><a href="#c3">3. Conhecendo a tela (anatomia da interface)</a></li>
+    <li><a href="#c4">4. Configurações de Perfil</a></li>
+    <li><a href="#c5">5. Espaços de Trabalho (Workspaces)</a></li>
+    <li><a href="#c6">6. Usuários e Permissões</a></li>
+    <li><a href="#c7">7. Categorias (Objetos) — o que são e as atuais</a></li>
+    <li><a href="#c8">8. Campos — tipos e o que cada categoria tem</a></li>
+    <li><a href="#c9">9. Como preencher cada tipo de dado</a></li>
+    <li><a href="#c10">10. Visualizações (Tabela e Kanban)</a></li>
+    <li><a href="#c11">11. O Pipeline de Propostas</a></li>
+    <li><a href="#c12">12. Cadastrando na prática (passo a passo)</a></li>
+    <li><a href="#c13">13. Assistente por Telegram (texto e voz)</a></li>
+    <li><a href="#c14">14. Dúvidas comuns e boas práticas</a></li>
+    <li><a href="#c15">Anexo — Referência rápida de campos</a></li>
+  </ol>
+  <div class="callout">
+    <b>Como usar este guia:</b> se você nunca mexeu em CRM, leia do capítulo 1 ao 3 para entender a tela. Depois vá direto ao capítulo 11 e 12 para começar a usar o pipeline de propostas — que é o coração do dia a dia.
+  </div>
+</div>
+
+<!-- 1 -->
+<div class="page" id="c1">
+  <h2>1. O que é o CRM e por que usar</h2>
+  <p><b>CRM</b> significa <i>Customer Relationship Management</i> (Gestão do Relacionamento com o Cliente). Na prática, é o lugar central onde ficam <b>todos os seus clientes, contatos e propostas</b> — organizados, para você nunca perder uma oportunidade nem esquecer um follow-up.</p>
+  <h3>O que você consegue fazer aqui</h3>
+  <table>
+    <tr><th>Recurso</th><th>Para que serve</th></tr>
+    <tr><td>Pipeline de Propostas</td><td>Ver todas as propostas em um quadro visual (Kanban), organizadas por fase: da prospecção ao fechamento</td></tr>
+    <tr><td>Empresas e Pessoas</td><td>Cadastro de clientes (empresas) e seus contatos (pessoas)</td></tr>
+    <tr><td>Notas e Tarefas</td><td>Registrar reuniões, observações e lembretes de follow-up</td></tr>
+    <tr><td>Assistente no Telegram</td><td>Criar e consultar propostas por mensagem de texto ou <b>áudio</b>, direto do celular, sem abrir o computador</td></tr>
+  </table>
+  <div class="callout dica"><b>A grande vantagem:</b> em campo, você manda um áudio para o assistente ("nova proposta pra Construtora X, dores prazo e orçamento, valor 200 mil") e a proposta aparece organizada no quadro automaticamente.</div>
+</div>
+
+<!-- 2 -->
+<div class="page" id="c2">
+  <h2>2. Como acessar</h2>
+  <ol class="passos">
+    <li>Abra o navegador (Chrome, Edge…) e acesse:<br><code>https://crm-seminario-production.up.railway.app</code></li>
+    <li>Na primeira vez, clique em <b>Sign up / Criar conta</b> e cadastre e-mail e senha. Nas próximas, use <b>Log in / Entrar</b>.</li>
+    <li>Pronto — você cai direto na área de trabalho do CRM.</li>
+  </ol>
+  <div class="callout dica"><b>Dica:</b> salve essa URL nos favoritos do navegador e do celular. No celular, dá para "adicionar à tela inicial" e fica parecendo um aplicativo.</div>
+  <div class="callout aviso"><b>Atenção:</b> a URL correta termina em <code>.up.railway.app</code>. Ignore qualquer link antigo terminado em <code>.vercel.app</code> (esse não existe mais).</div>
+</div>
+
+<!-- 3 -->
+<div class="page" id="c3">
+  <h2>3. Conhecendo a tela (anatomia)</h2>
+  <p>A interface tem 3 áreas principais. Entenda cada uma:</p>
+  <div class="mock">
+    <div class="mock-top">☰ &nbsp; CRM Bicalho &nbsp;&nbsp; <span style="margin-left:auto">🔍 Buscar &nbsp; ⚙️ Configurações &nbsp; 👤</span></div>
+    <div class="mock-body">
+      <div class="mock-side">
+        <div class="item">🏢 Empresas</div>
+        <div class="item">👥 Pessoas</div>
+        <div class="item on">📁 Propostas</div>
+        <div class="item">📝 Notas</div>
+        <div class="item">✅ Tarefas</div>
+        <div class="item" style="margin-top:12px;opacity:.6">⚙️ Configurações</div>
+      </div>
+      <div class="mock-main">
+        <b>Propostas</b> &nbsp; <span style="color:#888">▾ escolher visualização</span>
+        <div style="margin-top:8px" class="kanban">
+          <div class="kcol"><div class="kh" style="background:#2f6db3">Prospecção</div><div class="kcard">Construtora ABC</div></div>
+          <div class="kcol"><div class="kh" style="background:#e6b800">Qualificação</div></div>
+          <div class="kcol"><div class="kh" style="background:#e67e22">Proposta Inic.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <table>
+    <tr><th>Área</th><th>O que é</th></tr>
+    <tr><td><b>Menu lateral</b> (esquerda)</td><td>Lista das <b>categorias</b>: Empresas, Pessoas, Propostas, Notas, Tarefas. Clique para abrir cada uma. Embaixo fica <b>⚙️ Configurações</b>.</td></tr>
+    <tr><td><b>Barra superior</b></td><td>Busca global (🔍), configurações (⚙️) e seu perfil (👤).</td></tr>
+    <tr><td><b>Área central</b></td><td>Mostra os registros da categoria aberta. No topo dela fica o <b>seletor de visualização</b> (para trocar entre Tabela e Kanban).</td></tr>
+  </table>
+</div>
+
+<!-- 4 -->
+<div class="page" id="c4">
+  <h2>4. Configurações de Perfil</h2>
+  <p>Acesse <b>⚙️ Configurações</b> (canto inferior esquerdo). Lá você ajusta suas preferências pessoais.</p>
+  <table>
+    <tr><th>Onde</th><th>O que dá para mudar</th></tr>
+    <tr><td>Profile / Perfil</td><td>Sua foto, nome e sobrenome exibidos</td></tr>
+    <tr><td>Experience / Experiência</td><td><b>Idioma</b> (Português Brasil), tema claro/escuro, formato de data</td></tr>
+    <tr><td>Account / Conta</td><td>E-mail, <b>senha</b>, autenticação</td></tr>
+    <tr><td>Appearance / Aparência</td><td>Cores e densidade da interface</td></tr>
+  </table>
+  <h3>Trocar o idioma para Português</h3>
+  <ol class="passos">
+    <li>⚙️ Configurações → <b>Experience</b> (Experiência)</li>
+    <li>Campo <b>Language / Idioma</b> → selecione <b>Português (Brasil)</b></li>
+    <li>Recarregue a página (F5)</li>
+  </ol>
+  <div class="callout aviso"><b>Observação importante:</b> os <b>nomes das categorias e campos</b> já foram fixados em português (Empresas, Propostas, Valor, Fase…). Alguns <b>botões e menus internos do sistema</b> podem continuar em inglês porque a tradução nativa do Twenty ainda é parcial — isso é limitação da plataforma, não configuração.</div>
+</div>
+
+<!-- 5 -->
+<div class="page" id="c5">
+  <h2>5. Espaços de Trabalho (Workspaces)</h2>
+  <p>Um <b>espaço de trabalho</b> é o "ambiente" isolado do seu CRM — com seus dados, usuários e configurações próprias. Hoje você tem <b>um</b> espaço (Bicalho Engenharia), que é o suficiente para a operação atual.</p>
+  <h3>Quando faria sentido ter mais de um</h3>
+  <ul>
+    <li>Separar empresas/negócios totalmente diferentes que não compartilham dados</li>
+    <li>Ter um ambiente de testes separado do "de verdade"</li>
+  </ul>
+  <div class="callout"><b>Configuração atual:</b> a criação de múltiplos espaços está <b>desativada</b> para manter tudo simples e centralizado. Se um dia precisar de um segundo espaço, é uma mudança de configuração no servidor — me avise que habilito.</div>
+  <div class="callout dica"><b>Trocar de espaço (quando houver mais de um):</b> clique no nome do espaço no topo do menu lateral → aparece a lista para alternar.</div>
+</div>
+
+<!-- 6 -->
+<div class="page" id="c6">
+  <h2>6. Usuários e Permissões</h2>
+  <h3>Convidar um novo usuário (ex: sua equipe)</h3>
+  <ol class="passos">
+    <li>⚙️ Configurações → <b>Members / Membros</b></li>
+    <li>Botão <b>Invite / Convidar</b></li>
+    <li>Digite o <b>e-mail</b> da pessoa → envie o convite</li>
+    <li>Ela recebe um link por e-mail, cria a senha e entra no mesmo espaço de trabalho</li>
+  </ol>
+  <h3>Papéis e permissões</h3>
+  <p>Em <b>Configurações → Roles / Funções</b> você define o que cada pessoa pode fazer:</p>
+  <table>
+    <tr><th>Papel</th><th>Pode fazer</th></tr>
+    <tr><td><b>Admin</b> (Administrador)</td><td>Tudo: criar/editar categorias e campos, gerenciar usuários, configurações. (É o seu papel.)</td></tr>
+    <tr><td><b>Member</b> (Membro)</td><td>Usar o CRM no dia a dia: criar/editar/ver registros, mover propostas. Não mexe em estrutura nem em usuários.</td></tr>
+  </table>
+  <p>Dá para ajustar permissões por <b>categoria</b> (ex: um membro pode ver Propostas mas não Empresas) e por <b>ação</b> (ver, criar, editar, excluir).</p>
+  <div class="callout dica"><b>Recomendação:</b> mantenha só você como Admin. Cadastre a equipe como <b>Membros</b> — assim ninguém apaga a estrutura sem querer.</div>
+</div>
+
+<!-- 7 -->
+<div class="page" id="c7">
+  <h2>7. Categorias (Objetos)</h2>
+  <p>No Twenty, cada "categoria" de informação é chamada de <b>objeto</b>. Pense nelas como as "abas" ou "gavetas" do seu CRM. Cada categoria guarda um tipo de registro.</p>
+  <h3>Categorias atuais do seu CRM</h3>
+  <table>
+    <tr><th>Categoria</th><th>Guarda</th><th>Exemplo de registro</th></tr>
+    <tr><td>📁 <b>Propostas</b></td><td>As oportunidades de negócio, organizadas por fase (é o coração do CRM)</td><td>"Proposta Construtora ABC"</td></tr>
+    <tr><td>🏢 <b>Empresas</b></td><td>Os clientes (pessoa jurídica)</td><td>"Construtora ABC Ltda"</td></tr>
+    <tr><td>👥 <b>Pessoas</b></td><td>Os contatos dentro das empresas</td><td>"João Silva — Engenheiro"</td></tr>
+    <tr><td>📝 <b>Notas</b></td><td>Registros livres: atas de reunião, observações</td><td>"Reunião 20/07 — pontos discutidos"</td></tr>
+    <tr><td>✅ <b>Tarefas</b></td><td>Lembretes e pendências com prazo</td><td>"Enviar proposta até sexta"</td></tr>
+  </table>
+  <div class="callout"><b>Elas se conectam:</b> uma <b>Proposta</b> aponta para uma <b>Empresa</b> e um <b>Contato</b> (Pessoa). Uma <b>Nota</b> pode ser vinculada a qualquer uma. Assim tudo fica interligado.</div>
+  <h3>Criar, editar ou ocultar uma categoria</h3>
+  <ol class="passos">
+    <li>⚙️ Configurações → <b>Data model / Objetos</b></li>
+    <li>Para <b>criar</b>: botão <b>Add object</b> → defina nome no singular e plural (ex: "Fornecedor / Fornecedores")</li>
+    <li>Para <b>editar/ocultar</b>: clique na categoria → altere nome, ícone, ou desative (Deactivate) para sumir do menu</li>
+  </ol>
+  <div class="callout dica"><b>Categorias que você pode ocultar</b> se não usar: <b>Workflows</b> e <b>Dashboards</b> (recursos avançados). Isso deixa o menu mais limpo. Me avise que oculto.</div>
+</div>
+
+<!-- 8 -->
+<div class="page" id="c8">
+  <h2>8. Campos — o que cada categoria guarda</h2>
+  <p>Dentro de cada categoria existem <b>campos</b> (as "colunas"/informações). Ex: a categoria Propostas tem os campos Valor, Fase, Dores etc.</p>
+  <h3>Criar ou editar um campo</h3>
+  <ol class="passos">
+    <li>⚙️ Configurações → <b>Data model / Objetos</b> → clique na categoria (ex: Propostas)</li>
+    <li>Aba <b>Fields / Campos</b> → botão <b>Add field</b></li>
+    <li>Escolha o <b>nome</b> e o <b>tipo</b> (Texto, Número, Data, Seleção, Valor…) → salve</li>
+    <li>Para editar/renomear: clique no campo existente</li>
+  </ol>
+  <h3>Quais campos cada categoria possui hoje</h3>
+  <div class="grid2">
+    <div>
+      <h3 style="color:#e67e22">📁 Propostas</h3>
+      <table>
+        <tr><th>Campo</th><th>Tipo</th></tr>
+        <tr><td>Nome</td><td>Texto</td></tr>
+        <tr><td>Fase</td><td>Seleção</td></tr>
+        <tr><td>Valor</td><td>Dinheiro (R$)</td></tr>
+        <tr><td>Empresa</td><td>Vínculo</td></tr>
+        <tr><td>Contato</td><td>Vínculo</td></tr>
+        <tr><td>Dores Principais</td><td>Texto</td></tr>
+        <tr><td>Requisitos</td><td>Texto</td></tr>
+        <tr><td>Escopo</td><td>Texto</td></tr>
+        <tr><td>Probabilidade (%)</td><td>Número</td></tr>
+        <tr><td>Motivo da Perda</td><td>Seleção</td></tr>
+        <tr><td>Data da Reunião</td><td>Data</td></tr>
+        <tr><td>Data Envio Proposta</td><td>Data</td></tr>
+        <tr><td>Data de Fechamento</td><td>Data</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3 style="color:#2f6db3">🏢 Empresas</h3>
+      <table>
+        <tr><th>Campo</th><th>Tipo</th></tr>
+        <tr><td>Nome</td><td>Texto</td></tr>
+        <tr><td>Site</td><td>Link</td></tr>
+        <tr><td>Endereço</td><td>Endereço</td></tr>
+        <tr><td>Receita Anual</td><td>Dinheiro</td></tr>
+        <tr><td>LinkedIn</td><td>Link</td></tr>
+      </table>
+      <h3 style="color:#2f6db3">👥 Pessoas</h3>
+      <table>
+        <tr><th>Campo</th><th>Tipo</th></tr>
+        <tr><td>Nome</td><td>Nome completo</td></tr>
+        <tr><td>Emails</td><td>Email</td></tr>
+        <tr><td>Telefones</td><td>Telefone</td></tr>
+        <tr><td>Cargo</td><td>Texto</td></tr>
+        <tr><td>LinkedIn</td><td>Link</td></tr>
+      </table>
+      <h3 style="color:#2f6db3">✅ Tarefas</h3>
+      <table>
+        <tr><th>Campo</th><th>Tipo</th></tr>
+        <tr><td>Título</td><td>Texto</td></tr>
+        <tr><td>Corpo</td><td>Texto rico</td></tr>
+        <tr><td>Prazo</td><td>Data</td></tr>
+        <tr><td>Status</td><td>Seleção</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 9 -->
+<div class="page" id="c9">
+  <h2>9. Como preencher cada tipo de dado</h2>
+  <p>Cada campo tem um <b>tipo</b>, e cada tipo se preenche de um jeito. Guia rápido:</p>
+  <table>
+    <tr><th>Tipo</th><th>Como preencher</th><th>Exemplo</th></tr>
+    <tr><td><b>Texto</b></td><td>Digite livremente</td><td>Dores: "prazo e subcontratados"</td></tr>
+    <tr><td><b>Texto rico</b></td><td>Digite com formatação (negrito, listas)</td><td>Corpo de uma nota</td></tr>
+    <tr><td><b>Número</b></td><td>Só números</td><td>Probabilidade: 70</td></tr>
+    <tr><td><b>Dinheiro</b></td><td>Valor em R$; escolha a moeda se pedir</td><td>Valor: 150000</td></tr>
+    <tr><td><b>Data</b></td><td>Clique e escolha no calendário</td><td>Data da Reunião: 25/07/2026</td></tr>
+    <tr><td><b>Seleção</b></td><td>Escolhe <b>uma</b> opção da lista</td><td>Fase: Negociação</td></tr>
+    <tr><td><b>Email / Telefone</b></td><td>Digite; aceita mais de um</td><td>joao@abc.com</td></tr>
+    <tr><td><b>Link</b></td><td>Cole a URL</td><td>site: abc.com.br</td></tr>
+    <tr><td><b>Endereço</b></td><td>Rua, cidade, estado, CEP em campos separados</td><td>—</td></tr>
+    <tr><td><b>Nome completo</b></td><td>Nome + Sobrenome separados</td><td>João / Silva</td></tr>
+    <tr><td><b>Vínculo</b></td><td>Busca e seleciona outro registro já cadastrado</td><td>Empresa: Construtora ABC</td></tr>
+  </table>
+  <h3>Como editar um valor</h3>
+  <ol class="passos">
+    <li>Abra o registro (clique nele) ou fique na tabela</li>
+    <li><b>Clique em cima do campo</b> que quer mudar → ele vira editável</li>
+    <li>Digite/escolha o novo valor → clique fora ou aperte <b>Enter</b> para salvar (salva sozinho)</li>
+  </ol>
+</div>
+
+<!-- 10 -->
+<div class="page" id="c10">
+  <h2>10. Visualizações (Tabela e Kanban)</h2>
+  <p>Uma <b>visualização</b> é uma "maneira de olhar" os mesmos dados. As duas principais:</p>
+  <div class="grid2">
+    <div>
+      <h3>📋 Tabela</h3>
+      <p>Uma linha por registro, várias colunas. Boa para ver muitos dados e editar rápido.</p>
+    </div>
+    <div>
+      <h3>📊 Kanban</h3>
+      <p>Cartões em colunas por fase. Ideal para o pipeline: arraste o card de uma fase para outra.</p>
+    </div>
+  </div>
+  <h3>Trocar de visualização</h3>
+  <ol class="passos">
+    <li>Abra a categoria (ex: Propostas)</li>
+    <li>No <b>topo</b>, clique no <b>nome da visualização atual</b> (ex: "Todas as Propostas") — tem uma <b>seta ▾</b> do lado</li>
+    <li>Escolha <b>"By Stage"</b> (o Kanban por fase) — ou qualquer outra da lista</li>
+  </ol>
+  <h3>Criar sua própria visualização</h3>
+  <ol class="passos">
+    <li>No seletor de visualização → <b>+ Add view / Adicionar</b></li>
+    <li>Dê um nome, escolha o tipo (<b>Kanban</b> ou Tabela)</li>
+    <li>No Kanban, escolha agrupar por <b>Fase</b> → salve</li>
+  </ol>
+  <div class="callout dica"><b>Você também pode:</b> <b>filtrar</b> (ex: só propostas em Negociação), <b>ordenar</b> (por Valor) e <b>escolher quais colunas</b> aparecem — tudo pelos botões no topo da visualização. Cada visualização guarda suas próprias configurações.</div>
+</div>
+
+<!-- 11 -->
+<div class="page" id="c11">
+  <h2>11. O Pipeline de Propostas</h2>
+  <p>O pipeline é a jornada de cada proposta, da primeira conversa ao fechamento. Suas <b>6 fases</b>:</p>
+  <div class="kanban" style="margin:14px 0">
+    <div class="kcol"><div class="kh" style="background:#2f6db3">Prospecção</div><div class="kcard">Primeiro contato</div></div>
+    <div class="kcol"><div class="kh" style="background:#e6b800">Qualificação</div><div class="kcard">Reunião feita, dores mapeadas</div></div>
+    <div class="kcol"><div class="kh" style="background:#e67e22">Proposta Inicial</div><div class="kcard">Escopo e orçamento</div></div>
+    <div class="kcol"><div class="kh" style="background:#8e44ad">Negociação</div><div class="kcard">Proposta enviada</div></div>
+    <div class="kcol"><div class="kh" style="background:#27ae60">Fechado</div><div class="kcard">Contrato ✓</div></div>
+    <div class="kcol"><div class="kh" style="background:#c0392b">Perdido</div><div class="kcard">Com motivo ✗</div></div>
+  </div>
+  <h3>Mover uma proposta de fase</h3>
+  <ol class="passos">
+    <li>Abra <b>Propostas</b> na visualização <b>Kanban (By Stage)</b></li>
+    <li><b>Arraste o cartão</b> da coluna atual para a próxima fase — pronto, mudou de fase</li>
+    <li>Ao mover para <b>Perdido</b>, preencha o campo <b>Motivo da Perda</b> (Preço, Concorrência, Prazo…) — isso vira relatório depois</li>
+  </ol>
+  <div class="callout dica"><b>Boa prática:</b> mantenha as propostas sempre na fase real. O pipeline atualizado é o que te dá a visão de "quanto tenho em negociação" num relance.</div>
+</div>
+
+<!-- 12 -->
+<div class="page" id="c12">
+  <h2>12. Cadastrando na prática</h2>
+  <h3>Criar uma nova Proposta (pela interface)</h3>
+  <ol class="passos">
+    <li>Menu → <b>Propostas</b></li>
+    <li>Botão <b>+ Add / Novo</b> (canto superior direito)</li>
+    <li>Preencha o <b>Nome</b> (ex: "Reforma Galpão — Construtora ABC")</li>
+    <li>Abra o registro e preencha: <b>Empresa</b>, <b>Contato</b>, <b>Valor</b>, <b>Dores</b>, <b>Probabilidade</b>, <b>Fase</b></li>
+    <li>Está salvo automaticamente — já aparece no Kanban</li>
+  </ol>
+  <h3>Criar Empresa e Pessoa</h3>
+  <p>Mesma lógica: menu → <b>Empresas</b> (ou <b>Pessoas</b>) → <b>+ Add</b> → preencha. Depois, na Proposta, vincule essa empresa/contato no campo correspondente.</p>
+  <div class="callout dica"><b>Atalho:</b> ao criar a Proposta pelo assistente do Telegram informando a empresa, ela é <b>criada e vinculada automaticamente</b> — você não precisa cadastrar antes.</div>
+  <h3>Excluir um registro</h3>
+  <ol class="passos">
+    <li>Na tabela, passe o mouse na linha → aparece um <b>checkbox</b> à esquerda → marque</li>
+    <li>Surge uma barra com a <b>lixeira</b> 🗑️ → clique para excluir</li>
+    <li>Ou abra o registro → menu <b>⋯</b> (três pontos, canto superior direito) → <b>Delete / Excluir</b></li>
+  </ol>
+</div>
+
+<!-- 13 -->
+<div class="page" id="c13">
+  <h2>13. Assistente por Telegram</h2>
+  <p>O <b>@crm_seminario_bot</b> é seu assistente inteligente. Ele entende <b>texto e áudio</b> e mexe no CRM por você — ideal para usar em campo, pelo celular.</p>
+  <h3>O que ele faz</h3>
+  <table>
+    <tr><th>Você diz…</th><th>Ele faz</th></tr>
+    <tr><td>"Nova proposta pra Construtora Silva, dores prazo e orçamento, valor 200 mil, probabilidade 60%"</td><td>Cria a proposta (e a empresa) no CRM</td></tr>
+    <tr><td>"Quais propostas estão em negociação?"</td><td>Lista do pipeline</td></tr>
+    <tr><td>"Marca a proposta da ABC como perdida, motivo preço"</td><td>Move para Perdido com o motivo</td></tr>
+    <tr><td>"Cria um contato: João Silva, empresa ABC, telefone 31 99999-8888"</td><td>Cadastra a pessoa</td></tr>
+  </table>
+  <h3>Como usar</h3>
+  <ol class="passos">
+    <li>No Telegram, procure <b>@crm_seminario_bot</b> e toque em <b>Iniciar</b></li>
+    <li>Mande uma <b>mensagem de texto</b> ou grave um <b>áudio</b> descrevendo o que quer</li>
+    <li>Ele confirma o que fez. Use <b>/reset</b> para limpar o contexto e começar um assunto novo</li>
+  </ol>
+  <div class="callout"><b>Memória:</b> o assistente lembra da conversa recente. Você pode dizer "cria a proposta…" e depois "coloca ela em qualificação" que ele entende que "ela" é a proposta anterior.</div>
+</div>
+
+<!-- 14 -->
+<div class="page" id="c14">
+  <h2>14. Dúvidas comuns e boas práticas</h2>
+  <table>
+    <tr><th>Situação</th><th>O que fazer</th></tr>
+    <tr><td>"Não acho o Kanban"</td><td>Abra Propostas → clique no nome da visualização no topo (▾) → escolha "By Stage"</td></tr>
+    <tr><td>"Criei algo e não aparece"</td><td>Dê F5, e confira se a visualização não está com um filtro ativo</td></tr>
+    <tr><td>"Interface em inglês"</td><td>Configurações → Experience → Language → Português. Alguns botões do sistema seguem em inglês (limitação do Twenty)</td></tr>
+    <tr><td>"Quero um campo novo"</td><td>Configurações → Objetos → categoria → Add field</td></tr>
+    <tr><td>"Apagar dados de teste"</td><td>Selecione as linhas (checkbox) → lixeira</td></tr>
+  </table>
+  <h3>Boas práticas</h3>
+  <ul>
+    <li><b>Uma proposta por oportunidade</b> — e mantenha a fase sempre atualizada</li>
+    <li><b>Sempre preencha o Motivo da Perda</b> ao perder — vira aprendizado e relatório</li>
+    <li><b>Registre reuniões</b> como Nota vinculada à proposta/empresa</li>
+    <li><b>Use o áudio do assistente</b> logo após visitas em campo, enquanto está fresco</li>
+  </ul>
+  <div class="callout dica"><b>Precisa de ajuste?</b> Muita coisa da estrutura (campos, categorias, permissões, novas visualizações) pode ser mudada. Anote o que incomoda e peça — várias dessas configurações a gente adapta rápido.</div>
+</div>
+
+<!-- ANEXO -->
+<div class="page" id="c15">
+  <h2>Anexo — Referência rápida de campos</h2>
+  <p>Todos os campos preenchíveis, por categoria:</p>
+  <table id="ref"><tr><th>Categoria</th><th>Campo</th><th>Tipo</th><th>Opções (quando seleção)</th></tr>
+  <tr><td>Propostas</td><td>Fase</td><td>Seleção</td><td>Prospecção / Qualificação / Proposta Inicial / Negociação / Fechado / Perdido</td></tr><tr><td>Propostas</td><td>Requisitos</td><td>Texto</td><td></td></tr><tr><td>Propostas</td><td>Nome</td><td>Texto</td><td></td></tr><tr><td>Propostas</td><td>Data Envio Proposta</td><td>Data</td><td></td></tr><tr><td>Propostas</td><td>Motivo da Perda</td><td>Seleção</td><td>Preço / Concorrência / Prazo / Escopo não atendido / Cliente desistiu / Sem orçamento / Outro</td></tr><tr><td>Propostas</td><td>Dores Principais</td><td>Texto</td><td></td></tr><tr><td>Propostas</td><td>Data da Reunião</td><td>Data</td><td></td></tr><tr><td>Propostas</td><td>Probabilidade (%)</td><td>Número</td><td></td></tr><tr><td>Propostas</td><td>Escopo</td><td>Texto</td><td></td></tr><tr><td>Propostas</td><td>Data de Fechamento</td><td>Data</td><td></td></tr><tr><td>Propostas</td><td>Valor</td><td>Dinheiro (R$)</td><td></td></tr><tr><td>Empresas</td><td>LinkedIn</td><td>Link</td><td></td></tr><tr><td>Empresas</td><td>Endereço</td><td>Endereço</td><td></td></tr><tr><td>Empresas</td><td>Nome</td><td>Texto</td><td></td></tr><tr><td>Empresas</td><td>Receita Anual</td><td>Dinheiro (R$)</td><td></td></tr><tr><td>Empresas</td><td>Site</td><td>Link</td><td></td></tr><tr><td>Pessoas</td><td>Emails</td><td>Email</td><td></td></tr><tr><td>Pessoas</td><td>Cargo</td><td>Texto</td><td></td></tr><tr><td>Pessoas</td><td>Telefones</td><td>Telefone</td><td></td></tr><tr><td>Pessoas</td><td>Nome</td><td>Nome completo</td><td></td></tr><tr><td>Pessoas</td><td>LinkedIn</td><td>Link</td><td></td></tr><tr><td>Notas</td><td>Título</td><td>Texto</td><td></td></tr><tr><td>Notas</td><td>Corpo</td><td>Texto rico</td><td></td></tr><tr><td>Tarefas</td><td>Título</td><td>Texto</td><td></td></tr><tr><td>Tarefas</td><td>Corpo</td><td>Texto rico</td><td></td></tr><tr><td>Tarefas</td><td>Prazo</td><td>Data</td><td></td></tr><tr><td>Tarefas</td><td>Status</td><td>Seleção</td><td>à iniciar / Em progresso / Finalizado</td></tr>
+  </table>
+  <div class="callout" style="margin-top:20px">
+    <b>CRM Bicalho Engenharia</b> · Manual do Usuário v1.0<br>
+    Plataforma Twenty CRM + Assistente Telegram · Dúvidas ou ajustes: fale com o suporte técnico do projeto.
+  </div>
+</div>
+
+</body>
+</html>

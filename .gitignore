@@ -1,0 +1,29 @@
+# === Segredos — NUNCA commitar ===
+.env
+.env.local
+*.env
+!.env.example
+**/.env
+!**/.env.example
+
+# === Dependências e build ===
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+
+# === Clone do Twenty (projeto de terceiros, roda via imagem oficial no Railway) ===
+crm-seminario/
+
+# === Artefatos temporários ===
+*.log
+google-auth.log
+tmp/
+.DS_Store
+Thumbs.db
+
+# === Credenciais / tokens que possam ser gerados localmente ===
+*credentials*.json
+*token*.json
+service-account*.json
+qr-*.png
