@@ -146,27 +146,41 @@ railway logs          # deve mostrar "Agente ... iniciado"
 
 ---
 
-## 8b. Ponte CDE: documentos do Drive ↔ CRM (Notas, Timeline e Arquivos)
+## 8b. Ponte CDE: documentos do Drive ↔ CRM (Notas, Timeline e Pasta no Drive)
 
 Quando o agente arquiva um documento no Google Drive (via chat), ele **também registra o
-documento dentro do Twenty**, vinculado à **Empresa** e, se houver, à **Proposta ativa** do
-cliente. O mesmo documento passa a aparecer em **três lugares** do registro no CRM:
+documento dentro do Twenty**, vinculado à **Empresa** e, se houver, à **Proposta ativa**:
 
 - **Notas** — uma nota `📎 <arquivo>` com categoria + link clicável do Drive;
 - **Timeline** — a nota aparece na linha do tempo da Empresa e da Proposta;
-- **Arquivos** — um anexo (link para o Drive) na aba *Arquivos* do registro.
+- **Campo "Pasta no Drive"** — a Empresa recebe um link (tipo LINKS) que abre a **pasta
+  organizada do cliente** no Drive, com todos os documentos por categoria.
 
-Assim o arquivo mora no Drive (organizado por cliente/categoria) e o CRM vira o índice
-navegável — nada fica "solto". Não precisa configurar nada: já vem no fluxo `arquivar_documento`.
+> ⚠️ **Por que não usamos a aba "Files"?** A aba Files do Twenty é para arquivos **enviados
+> para o storage interno** dele (lista plana, sem pastas) e **não aceita links externos** — um
+> link do Drive em `fullPath` quebra a renderização da aba. Por isso os documentos do Drive
+> vão para **Notas** (rastreabilidade) + **campo Pasta no Drive** (navegação por pastas), e a
+> aba Files fica livre para uploads nativos do Twenty. As pastas "de verdade" vivem no Drive.
 
-### Sincronizar o que JÁ está no Drive (retroativo)
-Para trazer para o CRM os documentos que já existiam no Drive antes desta ponte:
+### Pré-requisito (uma vez): criar o campo "Pasta no Drive"
 ```bash
 cd agente-whatsapp
-npm run sync:crm      # varre CRM-Seminario/<cliente>/<categoria>/* e cria Notas + Arquivos
+npx ts-node scripts/criar-campo-pasta-drive.ts   # cria o campo LINKS na Empresa (idempotente)
+```
+
+### Sincronizar o que JÁ está no Drive (retroativo)
+```bash
+npm run sync:crm      # varre CRM-Seminario/<cliente>/<categoria>/* e cria as Notas + preenche a Pasta no Drive
 ```
 É **idempotente** (não duplica): pula os documentos cujo link já está referenciado no CRM.
-Requer o `.env` preenchido (Google + Twenty).
+
+> Se em algum momento a aba **Files** ficar quebrada por anexos com link externo (versões
+> antigas da ponte), rode: `npx ts-node scripts/remover-attachments-externos.ts`.
+
+### Bônus: consultor de dados no chat
+O agente também responde perguntas sobre o CRM ("quantas empresas?", "quanto em negociação?",
+"me fala da empresa X") e atua como consultor estratégico (entrevista você para desenhar
+dashboards, workflows e fluxos de captação — entrega o spec, sem criar automaticamente ainda).
 
 ## 9. Testes de fumaça
 

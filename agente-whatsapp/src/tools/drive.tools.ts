@@ -61,6 +61,15 @@ export async function uploadDocumento(params: {
   return res.data.webViewLink || '';
 }
 
+// Retorna o link (webViewLink) da pasta do cliente no Drive — usado no campo "Pasta no Drive" do CRM.
+export async function linkPastaCliente(clienteNome: string): Promise<string> {
+  const drive = getDrive();
+  const rootId = await getOrCreateFolder(drive, ROOT_FOLDER);
+  const clienteId = await getOrCreateFolder(drive, clienteNome, rootId);
+  const meta = await drive.files.get({ fileId: clienteId, fields: 'webViewLink' });
+  return meta.data.webViewLink || '';
+}
+
 export async function listarDocumentosCliente(params: {
   clienteNome: string;
   categoria?: string;

@@ -75,7 +75,7 @@ async function main() {
             categoria: labelCategoria(cat.name),
             nomeArquivo: arq.name,
             link,
-            mimeType: arq.mimeType,
+            pastaDriveLink: cliente.webViewLink,
           });
           jaRegistrados.add(link);
           criadas++;

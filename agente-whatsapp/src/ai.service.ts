@@ -1,7 +1,10 @@
 import OpenAI from 'openai';
-import { criarContato, criarNota, criarProposta, consultarPipeline, atualizarFaseDeal, registrarDocumentoNota } from './tools/twenty.tools';
+import {
+  criarContato, criarNota, criarProposta, consultarPipeline, atualizarFaseDeal, registrarDocumentoNota,
+  estatisticasCrm, listarEmpresas, buscarEmpresa, buscarPessoa,
+} from './tools/twenty.tools';
 import { agendarReuniao, consultarAgenda } from './tools/calendar.tools';
-import { listarDocumentosCliente, uploadDocumento } from './tools/drive.tools';
+import { listarDocumentosCliente, uploadDocumento, linkPastaCliente } from './tools/drive.tools';
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 const MODEL = process.env.OPENAI_MODEL || 'gpt-4o';
@@ -153,6 +156,46 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   {
     type: 'function',
     function: {
+      name: 'estatisticas_crm',
+      description: 'Panorama geral do CRM: nº de empresas, pessoas, propostas, e valor por fase do pipeline. Use para perguntas de resumo/números gerais ("quanto tenho em negociação?", "quantas empresas?").',
+      parameters: { type: 'object', properties: {} },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'listar_empresas',
+      description: 'Lista os nomes de todas as empresas cadastradas no CRM.',
+      parameters: { type: 'object', properties: {} },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'consultar_empresa',
+      description: 'Detalhes de uma empresa: contatos e propostas (fase e valor). Use para "me fala sobre a empresa X", "quais propostas da X".',
+      parameters: {
+        type: 'object',
+        properties: { nome: { type: 'string', description: 'Nome (ou parte) da empresa' } },
+        required: ['nome'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'consultar_pessoa',
+      description: 'Busca contatos/pessoas por nome, com empresa, e-mail e telefone.',
+      parameters: {
+        type: 'object',
+        properties: { nome: { type: 'string', description: 'Nome (ou parte) da pessoa' } },
+        required: ['nome'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
       name: 'arquivar_documento',
       description: 'Arquiva no CDE (Google Drive) o arquivo que o usuário acabou de enviar, na pasta do cliente e categoria. Só funciona quando há um arquivo anexado pendente.',
       parameters: {
@@ -181,7 +224,19 @@ Regras:
 - Confirme as ações executadas de forma resumida, citando o que foi criado/alterado (ex: "✅ Proposta 'X' criada na fase Prospecção")
 - Use o histórico da conversa: se o usuário se referir a algo mencionado antes ("essa proposta", "ele"), resolva pelo contexto
 - Para datas relativas ("sexta", "amanhã"), interprete com base na data atual informada abaixo
-- CDE de documentos: quando o usuário ENVIAR um arquivo (indicado por "[arquivo anexado...]" na mensagem), arquive-o com arquivar_documento escolhendo cliente e categoria pela legenda/contexto. Se não der pra identificar o cliente OU a categoria, pergunte antes de arquivar. Categorias válidas: Transcrição de Reunião, Proposta Inicial, Dores e Requisitos, Escopo, Cronograma, Orçamento, Contrato, Arquivado`;
+- CDE de documentos: quando o usuário ENVIAR um arquivo (indicado por "[arquivo anexado...]" na mensagem), arquive-o com arquivar_documento escolhendo cliente e categoria pela legenda/contexto. Se não der pra identificar o cliente OU a categoria, pergunte antes de arquivar. Categorias válidas: Transcrição de Reunião, Proposta Inicial, Dores e Requisitos, Escopo, Cronograma, Orçamento, Contrato, Arquivado
+
+CONSULTOR DE DADOS (generalista): você responde perguntas sobre os dados do CRM com rapidez e precisão. Use as ferramentas de consulta (estatisticas_crm, listar_empresas, consultar_empresa, consultar_pessoa, consultar_pipeline, listar_documentos_cliente) para buscar os números reais — NUNCA invente dados. Responda direto, com valores em R$ e contagens. Se a pergunta for ampla, comece pelo estatisticas_crm.
+
+CONSULTOR ESTRATÉGICO (dashboards, workflows e captação): quando o usuário quiser montar um dashboard, um workflow/automação, um plano ou um fluxo de captação, entre em MODO ENTREVISTA:
+1. Faça perguntas objetivas, UMA de cada vez, para entender: objetivo de negócio, entidade-alvo (empresa/pessoa/proposta), quais métricas/dados importam, e qual ação/decisão isso apoia.
+2. Consulte os dados reais do CRM para embasar as sugestões (ex: mostre quais métricas fazem sentido dado o pipeline atual).
+3. Pense como um estrategista de dados e de captação/conversão (funil, gargalos, follow-up, origem de leads).
+4. Entregue um SPEC claro ao final:
+   - Dashboard: quais gráficos/indicadores, filtros, agrupamentos e por quê.
+   - Workflow: gatilho → condição → ação (ex: "proposta parada 7 dias → criar tarefa de follow-up").
+   - Fluxo de captação: etapas, gatilhos e métricas de acompanhamento.
+5. IMPORTANTE: por enquanto NÃO crie o dashboard/workflow automaticamente no Twenty — entregue o desenho/spec pronto para implementação. Deixe claro que é um plano.`;
 
 function systemComData(): string {
   const hoje = new Date().toLocaleDateString('pt-BR', {
@@ -198,6 +253,10 @@ async function executeTool(name: string, input: Record<string, any>, chatId: str
       case 'registrar_nota':            result = await criarNota(input as any); break;
       case 'criar_proposta':            result = await criarProposta(input as any); break;
       case 'consultar_pipeline':        result = await consultarPipeline(input as any); break;
+      case 'estatisticas_crm':          result = await estatisticasCrm(); break;
+      case 'listar_empresas':           result = await listarEmpresas(); break;
+      case 'consultar_empresa':         result = await buscarEmpresa(input.nome); break;
+      case 'consultar_pessoa':          result = await buscarPessoa(input.nome); break;
       case 'atualizar_fase_deal':       result = await atualizarFaseDeal(input as any); break;
       case 'agendar_reuniao':           result = await agendarReuniao(input as any); break;
       case 'consultar_agenda':          result = await consultarAgenda(input as any); break;
@@ -220,8 +279,9 @@ async function executeTool(name: string, input: Record<string, any>, chatId: str
         // Ponte com o CRM: cria Nota vinculada à empresa (e à proposta ativa) → aparece em Notas + timeline
         let crm: string;
         try {
-          const r = await registrarDocumentoNota({ clienteNome: input.clienteNome, categoria: input.categoria, nomeArquivo, link, mimeType: anexo.mimeType });
-          crm = r.vinculadoAProposta ? 'vinculado à empresa e à proposta ativa (Notas + Arquivos)' : 'vinculado à empresa (Notas + Arquivos)';
+          const pastaDriveLink = await linkPastaCliente(input.clienteNome).catch(() => undefined);
+          const r = await registrarDocumentoNota({ clienteNome: input.clienteNome, categoria: input.categoria, nomeArquivo, link, pastaDriveLink });
+          crm = r.vinculadoAProposta ? 'vinculado à empresa e à proposta ativa (Notas + Timeline + Pasta no Drive)' : 'vinculado à empresa (Notas + Timeline + Pasta no Drive)';
         } catch (e: any) {
           crm = `arquivado no Drive, mas falhou ao vincular no CRM: ${e.message}`;
         }

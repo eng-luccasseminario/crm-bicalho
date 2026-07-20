@@ -148,44 +148,24 @@ async function buscarOportunidadeAtivaDaEmpresa(empresaId: string): Promise<stri
 
 // Cria uma Nota no CRM (vinculada à empresa) apontando para um documento arquivado no Drive.
 // É a "ponte" entre o CDE do Google Drive e a interface do Twenty.
-// Mapeia mimeType/nome do arquivo -> AttachmentFileCategoryEnum do Twenty
-function categoriaArquivo(mimeType = '', nome = ''): string {
-  const m = mimeType.toLowerCase(); const n = nome.toLowerCase();
-  if (m.startsWith('image/')) return 'IMAGE';
-  if (m.startsWith('audio/')) return 'AUDIO';
-  if (m.startsWith('video/')) return 'VIDEO';
-  if (m.includes('spreadsheet') || m.includes('excel') || m.includes('csv') || /\.(xlsx?|csv)$/.test(n)) return 'SPREADSHEET';
-  if (m.includes('presentation') || m.includes('powerpoint') || /\.(pptx?)$/.test(n)) return 'PRESENTATION';
-  if (m.includes('zip') || m.includes('rar') || m.includes('7z') || m.includes('compressed') || /\.(zip|rar|7z)$/.test(n)) return 'ARCHIVE';
-  if (m.includes('pdf') || m.includes('word') || m.includes('document') || m.startsWith('text/') || /\.(pdf|docx?|txt|md)$/.test(n)) return 'TEXT_DOCUMENT';
-  return 'OTHER';
-}
-
-// Cria um Attachment (aba "Arquivos") apontando para o link do Drive, vinculado a um alvo.
-async function criarAttachment(params: {
-  nome: string; url: string; fileCategory: string;
-  targetCompanyId?: string; targetOpportunityId?: string;
-}) {
-  const input: Record<string, unknown> = {
-    name: params.nome, fullPath: params.url, fileCategory: params.fileCategory,
-  };
-  if (params.targetCompanyId) input.targetCompanyId = params.targetCompanyId;
-  if (params.targetOpportunityId) input.targetOpportunityId = params.targetOpportunityId;
-  const data = await gql(
-    `mutation CriarAnexo($input: AttachmentCreateInput!) { createAttachment(data: $input) { id name } }`,
-    { input }
+// Ponte Drive -> CRM: cria uma NOTA com o link do documento, vinculada à empresa e (se houver)
+// à proposta ativa. A nota aparece na aba Notes e na Timeline de cada registro vinculado.
+// NÃO cria Attachment: no Twenty a aba Files espera arquivos no storage interno, não links
+// externos — um link do Drive em fullPath quebra a renderização da aba Files.
+// Grava o link da pasta do cliente no campo "Pasta no Drive" (LINKS) da empresa.
+async function setPastaDriveEmpresa(empresaId: string, link: string) {
+  await gql(
+    `mutation($id: UUID!, $input: CompanyUpdateInput!) { updateCompany(id: $id, data: $input) { id } }`,
+    { id: empresaId, input: { pastaDrive: { primaryLinkLabel: 'Documentos no Drive', primaryLinkUrl: link } } }
   );
-  return data.createAttachment;
 }
 
-// Ponte completa Drive -> CRM: cria a NOTA (Notas + timeline) E o ATTACHMENT (aba Arquivos),
-// vinculados à empresa e, se houver, à proposta ativa. Assim o doc do Drive fica 100% visível no CRM.
 export async function registrarDocumentoNota(params: {
   clienteNome: string;
   categoria: string;
   nomeArquivo: string;
   link: string;
-  mimeType?: string;
+  pastaDriveLink?: string; // link da pasta do cliente no Drive (para o campo da empresa)
 }) {
   const empresaId = await buscarOuCriarEmpresa(params.clienteNome);
   const oportunidadeId = await buscarOportunidadeAtivaDaEmpresa(empresaId);
@@ -200,16 +180,11 @@ export async function registrarDocumentoNota(params: {
     oportunidadeId,
   });
 
-  // Attachment (Arquivos): um por alvo, para aparecer na aba Arquivos da empresa e da proposta
-  const fileCategory = categoriaArquivo(params.mimeType, params.nomeArquivo);
-  try {
-    await criarAttachment({ nome: params.nomeArquivo, url: params.link, fileCategory, targetCompanyId: empresaId });
-    if (oportunidadeId) {
-      await criarAttachment({ nome: params.nomeArquivo, url: params.link, fileCategory, targetOpportunityId: oportunidadeId });
+  // Preenche o campo "Pasta no Drive" da empresa (falha silenciosa se o campo não existir)
+  if (params.pastaDriveLink) {
+    try { await setPastaDriveEmpresa(empresaId, params.pastaDriveLink); } catch (e: any) {
+      console.error('[twenty] não consegui gravar Pasta no Drive:', e.message);
     }
-  } catch (e: any) {
-    // Anexo é complementar; se falhar, a nota já garante rastreabilidade
-    console.error('[twenty] falha ao criar attachment:', e.message);
   }
 
   return { notaId: nota.id, empresaId, oportunidadeId, vinculadoAProposta: !!oportunidadeId };
@@ -313,4 +288,86 @@ export async function atualizarFaseDeal(params: {
     { id: params.dealId, input }
   );
   return data.updateOpportunity;
+}
+
+// ============================================================================
+//  Ferramentas de CONSULTA (consultor generalista do CRM) — somente leitura
+// ============================================================================
+
+const FASE_LABEL: Record<string, string> = {
+  PROSPECCAO: 'Prospecção', QUALIFICACAO: 'Qualificação', PROPOSTA_INICIAL: 'Proposta Inicial',
+  NEGOCIACAO: 'Negociação', FECHADO: 'Fechado', PERDIDO: 'Perdido',
+};
+const reais = (micros?: number) => (micros || 0) / 1_000_000;
+
+// Panorama geral: contagens + valor por fase (para perguntas tipo "quanto tenho em negociação?")
+export async function estatisticasCrm() {
+  const data = await gql(`query {
+    companies(first: 1000) { edges { node { id } } }
+    people(first: 1000) { edges { node { id } } }
+    opportunities(first: 1000) { edges { node { stage amount { amountMicros } } } }
+  }`);
+  const props = data.opportunities.edges.map((e: any) => e.node);
+  const porFase: Record<string, { quantidade: number; valorReais: number }> = {};
+  for (const o of props) {
+    const label = FASE_LABEL[o.stage] || o.stage || 'Sem fase';
+    porFase[label] ??= { quantidade: 0, valorReais: 0 };
+    porFase[label].quantidade++;
+    porFase[label].valorReais += reais(o.amount?.amountMicros);
+  }
+  const valorTotalAberto = props
+    .filter((o: any) => !['FECHADO', 'PERDIDO'].includes(o.stage))
+    .reduce((s: number, o: any) => s + reais(o.amount?.amountMicros), 0);
+  return {
+    empresas: data.companies.edges.length,
+    pessoas: data.people.edges.length,
+    propostas: props.length,
+    porFase,
+    valorTotalEmAberto: valorTotalAberto,
+  };
+}
+
+// Detalhe de uma empresa: contatos + propostas (para "me fala tudo da Matec")
+export async function buscarEmpresa(nome: string) {
+  const data = await gql(`query {
+    companies(first: 500) { edges { node { id name domainName { primaryLinkUrl } } } }
+    people(first: 1000) { edges { node { name { firstName lastName } emails { primaryEmail } phones { primaryPhoneNumber } company { id } } } }
+    opportunities(first: 1000) { edges { node { id name stage amount { amountMicros } updatedAt company { id } } } }
+  }`);
+  const alvo = nome.trim().toLowerCase();
+  const emp = data.companies.edges.map((e: any) => e.node).find((c: any) => c.name?.toLowerCase().includes(alvo));
+  if (!emp) return { encontrada: false, dica: 'Empresa não encontrada. Use listar_empresas para ver os nomes.' };
+
+  const contatos = data.people.edges.map((e: any) => e.node).filter((p: any) => p.company?.id === emp.id)
+    .map((p: any) => ({
+      nome: `${p.name?.firstName || ''} ${p.name?.lastName || ''}`.trim(),
+      email: p.emails?.primaryEmail || null,
+      telefone: p.phones?.primaryPhoneNumber || null,
+    }));
+  const propostas = data.opportunities.edges.map((e: any) => e.node).filter((o: any) => o.company?.id === emp.id)
+    .map((o: any) => ({ nome: o.name, fase: FASE_LABEL[o.stage] || o.stage, valorReais: reais(o.amount?.amountMicros), atualizadoEm: o.updatedAt }));
+
+  return { encontrada: true, empresa: emp.name, site: emp.domainName?.primaryLinkUrl || null, contatos, propostas };
+}
+
+// Lista os nomes das empresas cadastradas
+export async function listarEmpresas() {
+  const data = await gql(`query { companies(first: 1000) { edges { node { name } } } }`);
+  return { total: data.companies.edges.length, empresas: data.companies.edges.map((e: any) => e.node.name) };
+}
+
+// Busca pessoas por nome
+export async function buscarPessoa(nome: string) {
+  const data = await gql(`query {
+    people(first: 1000) { edges { node { name { firstName lastName } emails { primaryEmail } phones { primaryPhoneNumber } company { name } } } }
+  }`);
+  const alvo = nome.trim().toLowerCase();
+  return data.people.edges.map((e: any) => e.node)
+    .filter((p: any) => `${p.name?.firstName || ''} ${p.name?.lastName || ''}`.toLowerCase().includes(alvo))
+    .map((p: any) => ({
+      nome: `${p.name?.firstName || ''} ${p.name?.lastName || ''}`.trim(),
+      empresa: p.company?.name || null,
+      email: p.emails?.primaryEmail || null,
+      telefone: p.phones?.primaryPhoneNumber || null,
+    }));
 }
