@@ -90,6 +90,8 @@ export async function criarContato(params: {
   empresa?: string;
   telefone?: string;
   email?: string;
+  cargo?: string;
+  linkedin?: string;
   observacao?: string;
 }) {
   const [firstName, ...rest] = params.nome.split(' ');
@@ -112,6 +114,8 @@ export async function criarContato(params: {
     };
   }
   if (params.email) input.emails = { primaryEmail: params.email };
+  if (params.cargo) input.jobTitle = params.cargo;
+  if (params.linkedin) input.linkedinLink = linkInput(params.linkedin);
 
   const data = await gql(
     `mutation CriarPessoa($input: PersonCreateInput!) {

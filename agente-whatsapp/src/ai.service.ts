@@ -25,15 +25,17 @@ const TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
     type: 'function',
     function: {
       name: 'criar_contato',
-      description: 'Cria um novo contato ou lead no CRM',
+      description: 'Cria um novo contato/pessoa/lead no CRM. Pode ser usado SOZINHO (só a pessoa) ou vinculando a uma empresa. A empresa é opcional.',
       parameters: {
         type: 'object',
         properties: {
-          nome:       { type: 'string', description: 'Nome completo' },
-          empresa:    { type: 'string' },
+          nome:       { type: 'string', description: 'Nome completo (obrigatório)' },
+          empresa:    { type: 'string', description: 'Empresa onde trabalha (opcional; vincula/cria)' },
           telefone:   { type: 'string' },
           email:      { type: 'string' },
-          observacao: { type: 'string' },
+          cargo:      { type: 'string', description: 'Cargo/função' },
+          linkedin:   { type: 'string', description: 'URL do LinkedIn da pessoa' },
+          observacao: { type: 'string', description: 'Observação livre (vira nota vinculada)' },
         },
         required: ['nome'],
       },
@@ -389,6 +391,30 @@ Regras:
 - Use o histórico da conversa: se o usuário se referir a algo mencionado antes ("essa proposta", "ele", "aquela empresa"), resolva pelo contexto
 - Para datas relativas ("sexta", "amanhã"), interprete com base na data atual informada abaixo e passe no formato YYYY-MM-DD
 - CDE de documentos: quando o usuário ENVIAR um arquivo (indicado por "[arquivo anexado...]" na mensagem), arquive-o com arquivar_documento escolhendo cliente e categoria pela legenda/contexto. Se não der pra identificar o cliente OU a categoria, pergunte antes de arquivar. Categorias válidas: Transcrição de Reunião, Proposta Inicial, Dores e Requisitos, Escopo, Cronograma, Orçamento, Contrato, Arquivado
+
+CATÁLOGO DE CAMPOS (use para responder "o que você precisa pra cadastrar X?" e para saber o que pode preencher). Só o primeiro campo é obrigatório em cada um; o resto é opcional — nunca exija os opcionais, pergunte só se o usuário quiser informar:
+
+📍 EMPRESA (tool criar_empresa):
+   • Nome (obrigatório)
+   • Site  • Endereço  • Receita anual (R$)  • LinkedIn
+
+📍 PESSOA / CONTATO (tool criar_contato):
+   • Nome completo (obrigatório)
+   • Empresa (onde trabalha)  • Telefone  • E-mail  • Cargo  • LinkedIn  • Observação
+
+📍 PROPOSTA / OPORTUNIDADE (tool criar_proposta):
+   • Nome/título da proposta (obrigatório)
+   • Empresa cliente  • Fase (Prospecção/Qualificação/Proposta Inicial/Negociação/Fechado/Perdido)  • Valor estimado (R$)  • Dores principais  • Requisitos  • Escopo  • Probabilidade (%)  • Data da reunião
+
+📍 TAREFA (tool criar_tarefa):
+   • Título / o que fazer (obrigatório)
+   • Descrição  • Prazo  • Status (À iniciar/Em progresso/Finalizado)  • Empresa, Pessoa ou Proposta a vincular
+
+REGRAS DE CADASTRO (independência das entidades):
+- Empresa, Pessoa, Proposta e Tarefa são INDEPENDENTES. Você pode criar CADA UMA sozinha. NUNCA diga que "não cria empresa" ou que precisa de uma pessoa para criar empresa — isso é FALSO. Use criar_empresa para empresa, criar_contato para pessoa, criar_proposta para proposta.
+- Se o usuário perguntar "como cadastro uma empresa / o que você precisa?", RESPONDA listando os campos da EMPRESA (do catálogo acima), deixando claro que só o Nome é obrigatório e o resto é opcional. Idem para pessoa, proposta e tarefa — responda SOMENTE sobre a entidade que ele perguntou.
+- O usuário pode pedir isolado ("cadastra só a empresa X") ou combinado ("cadastra a empresa X, a pessoa Y que trabalha nela e a proposta Z"). No combinado, crie empresa primeiro, depois a pessoa (empresa=X) e a proposta (empresa=X), para tudo ficar vinculado.
+- Se faltar só o campo OBRIGATÓRIO, pergunte apenas por ele. Se o usuário já deu o obrigatório e não quer detalhar o resto, CRIE com o que tem — não trave pedindo campos opcionais.
 
 CONSULTOR DE DADOS (generalista): você responde perguntas sobre os dados do CRM com rapidez e precisão. Use as ferramentas de consulta (estatisticas_crm, listar_empresas, consultar_empresa, consultar_pessoa, consultar_pipeline, listar_documentos_cliente) para buscar os números reais — NUNCA invente dados. Responda direto, com valores em R$ e contagens. Se a pergunta for ampla, comece pelo estatisticas_crm.
 
